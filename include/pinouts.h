@@ -1,0 +1,10 @@
+//
+// Created by Kevin on 28.11.2023.
+//
+
+#ifndef MA_KEVINLUETTGE_PINOUTS_H
+#define MA_KEVINLUETTGE_PINOUTS_H
+
+
+
+#endif //MA_KEVINLUETTGE_PINOUTS_H
