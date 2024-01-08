@@ -1,13 +1,10 @@
-//
-// Created by Kevin on 04.01.2024.
-//
-
 #include "communication.h"
 #include "esp_wifi.h"
 #include "esp_netif.h"
 #include "nvs.h"
 #include "nvs_flash.h"
 #include "string.h"
+#include "main.h"
 
 bool calibration_finished[5] = {false, false, false, false, false};
 uint8_t mac_addresses[5][6] = {
@@ -27,15 +24,8 @@ uint8_t broadcastAddress[6] = {0xFF,
 
 
 void espnow_recv_cb(const esp_now_recv_info_t *recv_info, const uint8_t *data, int len) {
-    Message *msg = (Message *) data;
-
-    switch (msg->message_type) {
-        case CALIBRATION_MESSAGE_TYPE:
-            calibration_finished[msg->node_id] = msg->data.calibration_msg.calibration_finished;
-            break;
-        default:
-            break;
-    }
+    receivedMessage = (Message *)data;
+    messageReceivedFlag = 1;
 }
 
 void espnow_send_cb(const uint8_t *mac_addr, esp_now_send_status_t status) {
