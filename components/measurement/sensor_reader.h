@@ -4,11 +4,20 @@
 #include <esp_adc/adc_oneshot.h>
 #include "stdint.h"
 
+// GPIO12 D12
+#define HALL_SENSOR_PIN GPIO_NUM_12
+
+// GPIO13 D13
+#define PIR_SENSOR_PIN GPIO_NUM_13
+
 // GPIO34 A2
 #define CO_SENSOR_ADC_CHANNEL ADC_CHANNEL_6
 
 // GPIO39 A3
 #define ODOR_SENSOR_ADC_CHANNEL ADC_CHANNEL_3
+
+// GPIO36 A4
+#define LEAKAGE_SENSOR_PIN GPIO_NUM_36
 
 #define I2C_PORT        I2C_NUM_0
 #define I2C_SDA_PIN     22
@@ -31,6 +40,9 @@ typedef struct Acceleration {
 
 void initSensors();
 
+int readPIRSensor();
+int readHallSensor();
+int readLeakageSensor();
 uint32_t readCOSensor();
 uint32_t readOdorSensor();
 float readTemperatureSensor();

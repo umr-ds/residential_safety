@@ -1,8 +1,21 @@
 #include "sensor_reader.h"
+
 #include "driver/i2c.h"
+#include "driver/gpio.h"
 #include "math.h"
 
+
 adc_oneshot_unit_handle_t adc1_handle;
+
+void initGPIOs(){
+    gpio_config_t io_conf;
+    io_conf.intr_type = GPIO_INTR_DISABLE;
+    io_conf.mode = GPIO_MODE_INPUT;
+    io_conf.pin_bit_mask = (1ULL << LEAKAGE_SENSOR_PIN | (1ULL << HALL_SENSOR_PIN) | (1ULL << PIR_SENSOR_PIN));
+    io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
+    io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
+    gpio_config(&io_conf);
+}
 
 void initI2CDriver() {
     i2c_config_t i2c_cfg = {
@@ -41,7 +54,10 @@ void initTemperatureSensor() {
 
 void initSensors() {
 
+    /// Init GPIOs for Sensors with digital output (PIR, HALL, LEAKAGE)
+    initGPIOs();
 
+    /// Init ADCs for CO and Odor Sensors
     adc_oneshot_unit_init_cfg_t init_config1 = {
             .unit_id = ADC_UNIT_1,
             .ulp_mode = ADC_ULP_MODE_DISABLE,
@@ -52,11 +68,9 @@ void initSensors() {
             .bitwidth = ADC_BITWIDTH_DEFAULT,
             .atten = ADC_ATTEN_DB_11,
     };
+
     ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1_handle, CO_SENSOR_ADC_CHANNEL, &config));
     ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1_handle, ODOR_SENSOR_ADC_CHANNEL, &config));
-    /// Init ADCs for CO and Odor Sensors
-    //adc1_config_channel_atten(CO_SENSOR_ADC, ADC_ATTEN_CO);
-    //adc1_config_channel_atten(ODOR_SENSOR_ADC, ADC_ATTEN_ODOR);
 
     /// Init I2C Driver
     initI2CDriver();
@@ -66,6 +80,19 @@ void initSensors() {
 
     /// Init I2C for LIS3DH (Accelerometer)
     initAccelerometer();
+}
+
+int readPIRSensor(){
+    return gpio_get_level(PIR_SENSOR_PIN);
+}
+
+int readLeakageSensor(){
+
+    return gpio_get_level(GPIO_NUM_36);
+}
+
+int readHallSensor(){
+    return gpio_get_level(HALL_SENSOR_PIN);
 }
 
 uint32_t readCOSensor() {
