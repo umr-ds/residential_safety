@@ -1,20 +1,42 @@
 #include "sensor_reader.h"
-
 #include "driver/i2c.h"
 #include "driver/gpio.h"
 #include "math.h"
-
+#include "main.h"
 
 adc_oneshot_unit_handle_t adc1_handle;
 
+static void ISR(void* arg) {
+    gpio_num_t pin = (gpio_num_t)arg;
+    switch (pin) {
+        case HALL_SENSOR_PIN:
+            interruptFlag = HALL_FLAG;
+            break;
+        case PIR_SENSOR_PIN:
+            interruptFlag = PIR_FLAG;
+            break;
+        case LEAKAGE_SENSOR_PIN:
+            interruptFlag = LEAKAGE_FLAG;
+            break;
+        default:
+            break;
+
+    }
+}
+
 void initGPIOs(){
     gpio_config_t io_conf;
-    io_conf.intr_type = GPIO_INTR_DISABLE;
+    io_conf.intr_type = GPIO_INTR_HIGH_LEVEL;
     io_conf.mode = GPIO_MODE_INPUT;
     io_conf.pin_bit_mask = (1ULL << LEAKAGE_SENSOR_PIN | (1ULL << HALL_SENSOR_PIN) | (1ULL << PIR_SENSOR_PIN));
     io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
     io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
     gpio_config(&io_conf);
+
+    gpio_install_isr_service(0);
+    gpio_isr_handler_add(LEAKAGE_SENSOR_PIN, ISR, (void*)LEAKAGE_SENSOR_PIN);
+    gpio_isr_handler_add(HALL_SENSOR_PIN, ISR, (void*)HALL_SENSOR_PIN);
+    gpio_isr_handler_add(PIR_SENSOR_PIN, ISR, (void*)PIR_SENSOR_PIN);
 }
 
 void initI2CDriver() {
@@ -49,7 +71,6 @@ void initTemperatureSensor() {
     uint8_t writeBuf[3] = {0xBE, 0x08, 0x00};
     i2c_master_write_to_device(I2C_NUM_0, AHT20_ADDR, (const uint8_t *) writeBuf, sizeof(writeBuf),
                                1000 / portTICK_PERIOD_MS);
-    //vTaskDelay(10 / portTICK_PERIOD_MS);
 }
 
 void initSensors() {
