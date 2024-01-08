@@ -2,12 +2,13 @@
 #define MASTERTHESIS_MAIN_H
 
 #include "sensor_reader.h"
-#include "communication.h"
 
 #define NUM_CALIBRATION_VALUES 300
+#define LEAKAGE_FLAG 1
+#define PIR_FLAG 2
+#define HALL_FLAG 3
 
 uint8_t node_id = 0;
-
 float mean_odor = 0;
 float stdDev_odor = 0;
 float mean_CO = 0;
