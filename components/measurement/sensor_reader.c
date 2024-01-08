@@ -1,30 +1,10 @@
 #include "sensor_reader.h"
 #include "driver/i2c.h"
-#include "driver/gpio.h"
 #include "math.h"
-#include "main.h"
 
 adc_oneshot_unit_handle_t adc1_handle;
 
-static void ISR(void* arg) {
-    gpio_num_t pin = (gpio_num_t)arg;
-    switch (pin) {
-        case HALL_SENSOR_PIN:
-            interruptFlag = HALL_FLAG;
-            break;
-        case PIR_SENSOR_PIN:
-            interruptFlag = PIR_FLAG;
-            break;
-        case LEAKAGE_SENSOR_PIN:
-            interruptFlag = LEAKAGE_FLAG;
-            break;
-        default:
-            break;
-
-    }
-}
-
-void initGPIOs(){
+void initGPIOs(gpio_isr_t isr){
     gpio_config_t io_conf;
     io_conf.intr_type = GPIO_INTR_HIGH_LEVEL;
     io_conf.mode = GPIO_MODE_INPUT;
@@ -34,9 +14,10 @@ void initGPIOs(){
     gpio_config(&io_conf);
 
     gpio_install_isr_service(0);
-    gpio_isr_handler_add(LEAKAGE_SENSOR_PIN, ISR, (void*)LEAKAGE_SENSOR_PIN);
-    gpio_isr_handler_add(HALL_SENSOR_PIN, ISR, (void*)HALL_SENSOR_PIN);
-    gpio_isr_handler_add(PIR_SENSOR_PIN, ISR, (void*)PIR_SENSOR_PIN);
+
+    gpio_isr_handler_add(LEAKAGE_SENSOR_PIN, isr, (void*)LEAKAGE_SENSOR_PIN);
+    gpio_isr_handler_add(HALL_SENSOR_PIN, isr, (void*)HALL_SENSOR_PIN);
+    gpio_isr_handler_add(PIR_SENSOR_PIN, isr, (void*)PIR_SENSOR_PIN);
 }
 
 void initI2CDriver() {
@@ -73,10 +54,10 @@ void initTemperatureSensor() {
                                1000 / portTICK_PERIOD_MS);
 }
 
-void initSensors() {
+void initSensors(gpio_isr_t isr) {
 
     /// Init GPIOs for Sensors with digital output (PIR, HALL, LEAKAGE)
-    initGPIOs();
+    initGPIOs(isr);
 
     /// Init ADCs for CO and Odor Sensors
     adc_oneshot_unit_init_cfg_t init_config1 = {

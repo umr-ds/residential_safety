@@ -3,6 +3,7 @@
 
 #include <esp_adc/adc_oneshot.h>
 #include "stdint.h"
+#include "driver/gpio.h"
 
 // GPIO12 D12
 #define HALL_SENSOR_PIN GPIO_NUM_12
@@ -38,7 +39,7 @@ typedef struct Acceleration {
     float z;
 } Acceleration;
 
-void initSensors();
+void initSensors(gpio_isr_t isr);
 
 int readPIRSensor();
 int readHallSensor();

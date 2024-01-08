@@ -37,7 +37,7 @@ void espnow_send_cb(const uint8_t *mac_addr, esp_now_send_status_t status);
 
 void initWifi();
 
-void initESPNOW(uint8_t node_id);
+void initESPNOW(uint8_t node_id, esp_now_recv_cb_t recvCallback, esp_now_send_cb_t sendCallback);
 
 void send_calibration_complete(uint8_t node_id);
 

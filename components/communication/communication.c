@@ -4,7 +4,6 @@
 #include "nvs.h"
 #include "nvs_flash.h"
 #include "string.h"
-#include "main.h"
 
 bool calibration_finished[5] = {false, false, false, false, false};
 uint8_t mac_addresses[5][6] = {
@@ -21,16 +20,6 @@ uint8_t broadcastAddress[6] = {0xFF,
                                0xFF,
                                0xFF,
                                0xFF};
-
-
-void espnow_recv_cb(const esp_now_recv_info_t *recv_info, const uint8_t *data, int len) {
-    receivedMessage = (Message *)data;
-    messageReceivedFlag = 1;
-}
-
-void espnow_send_cb(const uint8_t *mac_addr, esp_now_send_status_t status) {
-
-}
 
 void initWifi() {
     esp_err_t ret = nvs_flash_init();
@@ -49,11 +38,11 @@ void initWifi() {
 
 }
 
-void initESPNOW(uint8_t node_id) {
+void initESPNOW(uint8_t node_id, esp_now_recv_cb_t recvCallback, esp_now_send_cb_t sendCallback) {
     ESP_ERROR_CHECK(esp_now_init());
 
-    ESP_ERROR_CHECK(esp_now_register_recv_cb(espnow_recv_cb));
-    ESP_ERROR_CHECK(esp_now_register_send_cb(espnow_send_cb));
+    ESP_ERROR_CHECK(esp_now_register_recv_cb(recvCallback));
+    ESP_ERROR_CHECK(esp_now_register_send_cb(sendCallback));
 
     for (int i = 0; i < 5; i++) {
         if (i != node_id) {
