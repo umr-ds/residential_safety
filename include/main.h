@@ -14,8 +14,8 @@
 RTC_DATA_ATTR uint8_t node_id = 0;
 RTC_DATA_ATTR float mean_odor = 0;
 RTC_DATA_ATTR float stdDev_odor = 0;
-RTC_DATA_ATTR float mean_CO = 0;
-RTC_DATA_ATTR float stdDev_CO = 0;
+RTC_DATA_ATTR float mean_co = 0;
+RTC_DATA_ATTR float stdDev_co = 0;
 RTC_DATA_ATTR float mean_temperature = 0;
 RTC_DATA_ATTR float stdDev_temperature = 0;
 RTC_DATA_ATTR Acceleration mean_accel;
