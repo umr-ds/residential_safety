@@ -5,11 +5,11 @@
 #include "stdint.h"
 #include "driver/gpio.h"
 
-// GPIO12 D12
-#define HALL_SENSOR_PIN GPIO_NUM_12
-
 // GPIO13 D13
 #define PIR_SENSOR_PIN GPIO_NUM_13
+
+// GPIO12 D27
+#define HALL_SENSOR_PIN GPIO_NUM_27
 
 // GPIO34 A2
 #define CO_SENSOR_ADC_CHANNEL ADC_CHANNEL_6
@@ -39,7 +39,9 @@ typedef struct Acceleration {
     float z;
 } Acceleration;
 
-void initSensors(gpio_isr_t isr);
+//void initSensors(gpio_isr_t isr);
+void initSensors();
+void deinitSensors();
 
 int readPIRSensor();
 int readHallSensor();
