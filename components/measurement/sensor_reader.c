@@ -54,10 +54,7 @@ void initTemperatureSensor() {
                                1000 / portTICK_PERIOD_MS);
 }
 
-void initSensors(gpio_isr_t isr) {
-
-    /// Init GPIOs for Sensors with digital output (PIR, HALL, LEAKAGE)
-    initGPIOs(isr);
+void initSensors() {
 
     /// Init ADCs for CO and Odor Sensors
     adc_oneshot_unit_init_cfg_t init_config1 = {
@@ -89,7 +86,6 @@ int readPIRSensor(){
 }
 
 int readLeakageSensor(){
-
     return gpio_get_level(GPIO_NUM_36);
 }
 
