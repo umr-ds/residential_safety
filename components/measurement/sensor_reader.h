@@ -41,7 +41,6 @@ typedef struct Acceleration {
 
 //void initSensors(gpio_isr_t isr);
 void initSensors();
-void deinitSensors();
 
 int readPIRSensor();
 int readHallSensor();
