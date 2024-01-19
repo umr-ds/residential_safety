@@ -4,7 +4,6 @@
 
 #pragma once
 
-/* Set low and high thresholds, approx. 1.35V - 1.75V*/
 #define CO_ADC_CHANNEL 6
 #define ODOR_ADC_CHANNEL 3
 
