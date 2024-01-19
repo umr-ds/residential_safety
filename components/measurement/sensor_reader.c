@@ -36,14 +36,14 @@ void initI2CDriver() {
 }
 
 void initAccelerometer() {
-    // Configure LIS3DH
-    //uint8_t writeBuf[2] = {LIS3DH_REG_CTRL1, 0x07};
-    uint8_t writeBuf[2] = {LIS3DH_REG_CTRL1, 0x27};
+    // Data rate: 400Hz, Low-Power disabled, X,Y,Z Axes enabled
+    uint8_t writeBuf[2] = {LIS3DH_REG_CTRL1, 0x77};
     i2c_master_write_to_device(I2C_NUM_0, LIS3DH_ADDR, (const uint8_t *) writeBuf, sizeof(writeBuf),
                                1000 / portTICK_PERIOD_MS);
+
+
     writeBuf[0] = LIS3DH_REG_CTRL4;
-    writeBuf[1] = 0x98;
-    //writeBuf[1] = 0x20;
+    writeBuf[1] = 0x18; // Continuus update, LSB first, 4G-Scale, high-resoultion enabled
     i2c_master_write_to_device(I2C_NUM_0, LIS3DH_ADDR, (const uint8_t *) writeBuf, sizeof(writeBuf),
                                1000 / portTICK_PERIOD_MS);
 }
@@ -79,6 +79,10 @@ void initSensors() {
 
     /// Init I2C for LIS3DH (Accelerometer)
     initAccelerometer();
+}
+
+void configureInterruptAccelerometer() {
+
 }
 
 int readPIRSensor(){
@@ -126,17 +130,20 @@ Acceleration readAccelerometer() {
     uint8_t writeBuf[1] = {LIS3DH_REG_OUT_X_L | 0x80,};
     i2c_master_write_to_device(I2C_NUM_0, LIS3DH_ADDR, writeBuf, sizeof(writeBuf), 1000 / portTICK_PERIOD_MS);
     i2c_master_read_from_device(I2C_NUM_0, LIS3DH_ADDR, data, sizeof(data), 1000 / portTICK_PERIOD_MS);
-    int16_t x, y, z;
-    x = data[0];
-    x |= ((uint16_t) data[1]) << 8;
-    y = data[2];
-    y |= ((uint16_t) data[3]) << 8;
-    z = data[4];
-    z |= ((uint16_t) data[5]) << 8;
-    int lsb_value = 2;
-    acceleration.x = lsb_value * ((float) x / 16000);
-    acceleration.y = lsb_value * ((float) y / 16000);
-    acceleration.z = lsb_value * ((float) z / 16000);
+
+    // Convert raw data to 16-bit signed integers
+    // and shift by 4 because of 12-bit data
+    int16_t x,y,z;
+    x = ((int16_t)data[1]<<8)+(uint16_t)data[0];
+    x = x>>4;
+    y = ((int16_t)data[3]<<8)+(uint16_t)data[2];
+    y = y>>4;
+    z = ((int16_t)data[5]<<8)+(uint16_t)data[4];
+    z= z>>4;
+    float sensitivity = 0.002; // 2mg per digit
+    acceleration.x = (float)x*sensitivity;
+    acceleration.y = (float)y*sensitivity;
+    acceleration.z = (float)z*sensitivity;
 
     return acceleration;
 }

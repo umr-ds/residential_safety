@@ -20,6 +20,9 @@
 // GPIO36 A4
 #define LEAKAGE_SENSOR_PIN GPIO_NUM_36
 
+// GPIO37
+#define ACCELEROMETER_INTR_PIN GPIO_NUM_37
+
 #define I2C_PORT        I2C_NUM_0
 #define I2C_SDA_PIN     22
 #define I2C_SCL_PIN     20
@@ -28,8 +31,13 @@
 
 #define LIS3DH_ADDR     0x18
 #define LIS3DH_REG_CTRL1 0x20
+#define LIS3DH_REG_CTRL3 0x22
 #define LIS3DH_REG_CTRL4 0x23
+#define LIS3DH_REG_CTRL5 0x24
 #define LIS3DH_REG_OUT_X_L 0x28
+#define LIS3DH_REG_INT1_THS 0x32
+#define LIS3DH_REG_INT1_DUR 0x33
+#define LIS3DH_REG_INT1_CFG 0x34
 
 extern adc_oneshot_unit_handle_t adc1_handle;
 
@@ -41,7 +49,7 @@ typedef struct Acceleration {
 
 //void initSensors(gpio_isr_t isr);
 void initSensors();
-
+void configureInterruptAccelerometer();
 int readPIRSensor();
 int readHallSensor();
 int readLeakageSensor();
