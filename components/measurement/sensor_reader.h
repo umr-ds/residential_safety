@@ -35,9 +35,9 @@
 #define LIS3DH_REG_CTRL4 0x23
 #define LIS3DH_REG_CTRL5 0x24
 #define LIS3DH_REG_OUT_X_L 0x28
+#define LIS3DH_REG_INT1_CFG 0x30
 #define LIS3DH_REG_INT1_THS 0x32
 #define LIS3DH_REG_INT1_DUR 0x33
-#define LIS3DH_REG_INT1_CFG 0x34
 
 extern adc_oneshot_unit_handle_t adc1_handle;
 

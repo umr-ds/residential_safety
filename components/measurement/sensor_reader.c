@@ -82,6 +82,25 @@ void initSensors() {
 }
 
 void configureInterruptAccelerometer() {
+    // IA1 interrupt on INT1 enabled
+    uint8_t writeBuf[2] = {LIS3DH_REG_CTRL3, 0x40};
+    i2c_master_write_to_device(I2C_NUM_0, LIS3DH_ADDR, (const uint8_t *) writeBuf, sizeof(writeBuf),
+                               1000 / portTICK_PERIOD_MS);
+
+    writeBuf[0] = LIS3DH_REG_INT1_CFG;
+    writeBuf[1] = 0x3F; // X,Y,Z High Interrupt enabled
+    i2c_master_write_to_device(I2C_NUM_0, LIS3DH_ADDR, (const uint8_t *) writeBuf, sizeof(writeBuf),
+                               1000 / portTICK_PERIOD_MS);
+
+    writeBuf[0] = LIS3DH_REG_INT1_THS;
+    writeBuf[1] = 0x02; //Threshold at 32 mg / LSB
+    i2c_master_write_to_device(I2C_NUM_0, LIS3DH_ADDR, (const uint8_t *) writeBuf, sizeof(writeBuf),
+                               1000 / portTICK_PERIOD_MS);
+
+    writeBuf[0] = LIS3DH_REG_INT1_DUR;
+    writeBuf[1] = 0xFF;
+    i2c_master_write_to_device(I2C_NUM_0, LIS3DH_ADDR, (const uint8_t *) writeBuf, sizeof(writeBuf),
+                               1000 / portTICK_PERIOD_MS);
 
 }
 
