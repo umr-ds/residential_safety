@@ -97,15 +97,14 @@ void calibrate() {
                           stdDev_accel.x, stdDev_accel.y, stdDev_accel.z);
 }
 
-
 void app_main(void)
 {
     ESP_LOGI(INFO, "Initializing Sensors.\n");
     initSensors();
     if(calibrated == false) calibrate();
+    configureInterruptAccelerometer();
     // Deinit ADC to be used for ulp again
     ESP_ERROR_CHECK(adc_oneshot_del_unit(adc1_handle));
-    // TODO Add Interrupt Pin for Accelerometer
     esp_sleep_wakeup_cause_t cause = esp_sleep_get_wakeup_cause();
     switch(cause) {
         case ESP_SLEEP_WAKEUP_TIMER:
@@ -133,6 +132,10 @@ void app_main(void)
                 ESP_LOGI(INFO, "Wakeup by Hall Pin\n");
                 voting = true;
             }
+            if((esp_sleep_get_ext1_wakeup_status() >> ACCELEROMETER_INTR_PIN) & 0x01) {
+                ESP_LOGI(INFO, "Wakeup by Acclerometer Pin\n");
+                voting = true;
+            }
             break;
         default:
             init_ulp_program();
@@ -141,16 +144,18 @@ void app_main(void)
     }
     if(voting == false) {
         ESP_ERROR_CHECK(esp_sleep_enable_ulp_wakeup());
-        ESP_ERROR_CHECK(esp_sleep_enable_ext1_wakeup((1ULL << HALL_SENSOR_PIN) | ( 1ULL << PIR_SENSOR_PIN) | (1ULL << LEAKAGE_SENSOR_PIN), ESP_EXT1_WAKEUP_ANY_HIGH));
+        ESP_ERROR_CHECK(esp_sleep_enable_ext1_wakeup((1ULL << HALL_SENSOR_PIN) | ( 1ULL << PIR_SENSOR_PIN) | (1ULL << LEAKAGE_SENSOR_PIN) | (1ULL << ACCELEROMETER_INTR_PIN), ESP_EXT1_WAKEUP_ANY_HIGH));
         ESP_ERROR_CHECK(esp_sleep_enable_timer_wakeup(1000*1000*60));
         rtc_gpio_isolate(GPIO_NUM_12);
         rtc_gpio_isolate(GPIO_NUM_15);
         ESP_ERROR_CHECK(rtc_gpio_pullup_dis(HALL_SENSOR_PIN));
         ESP_ERROR_CHECK(rtc_gpio_pullup_dis(PIR_SENSOR_PIN));
         ESP_ERROR_CHECK(rtc_gpio_pullup_dis(LEAKAGE_SENSOR_PIN));
+        ESP_ERROR_CHECK(rtc_gpio_pullup_dis(ACCELEROMETER_INTR_PIN));
         ESP_ERROR_CHECK(rtc_gpio_pulldown_en(HALL_SENSOR_PIN));
         ESP_ERROR_CHECK(rtc_gpio_pulldown_en(PIR_SENSOR_PIN));
         ESP_ERROR_CHECK(rtc_gpio_pulldown_en(LEAKAGE_SENSOR_PIN));
+        ESP_ERROR_CHECK(rtc_gpio_pulldown_en(ACCELEROMETER_INTR_PIN));
         start_ulp_program();
         esp_deep_sleep_start();
     }
