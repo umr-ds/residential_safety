@@ -20,6 +20,40 @@ void initGPIOs(gpio_isr_t isr){
     gpio_isr_handler_add(PIR_SENSOR_PIN, isr, (void*)PIR_SENSOR_PIN);
 }
 
+void initLED(){
+    gpio_config_t io_conf = {
+            .pin_bit_mask = (1ULL << LED_PIN),
+            .mode = GPIO_MODE_OUTPUT,
+            .intr_type = GPIO_INTR_DISABLE,
+            .pull_up_en = GPIO_PULLUP_DISABLE,
+            .pull_down_en = GPIO_PULLDOWN_ENABLE,
+    };
+    gpio_config(&io_conf);
+}
+
+void set_led_level(uint8_t level){
+    gpio_set_level(LED_PIN, level);
+}
+
+int get_led_level(){
+    return gpio_get_level(LED_PIN);
+}
+
+void initButton(gpio_isr_t button_isr){
+    gpio_config_t io_conf = {
+            .pin_bit_mask = (1ULL << BUTTON_PIN),
+            .mode = GPIO_MODE_INPUT,
+            .intr_type = GPIO_INTR_POSEDGE,
+            .pull_up_en = GPIO_PULLUP_ENABLE,
+            .pull_down_en = GPIO_PULLDOWN_DISABLE
+    };
+    gpio_config(&io_conf);
+    gpio_install_isr_service(0);
+    gpio_isr_handler_add(BUTTON_PIN, button_isr, (void*)BUTTON_PIN);
+}
+
+
+
 void initI2CDriver() {
     i2c_config_t i2c_cfg = {
             .mode = I2C_MODE_MASTER,
@@ -79,6 +113,8 @@ void initSensors() {
 
     /// Init I2C for LIS3DH (Accelerometer)
     initAccelerometer();
+
+    initLED();
 }
 
 void configureInterruptAccelerometer() {
