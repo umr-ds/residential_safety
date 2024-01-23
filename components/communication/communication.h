@@ -5,11 +5,12 @@
 #define VOTING_MESSAGE_TYPE 2
 #define DATA_MESSAGE_TYPE 3
 
+#define NUM_SENSORS 2
+
 #include <esp_now.h>
 #include "stdint.h"
 
 extern uint8_t mac_addresses[5][6];
-extern uint8_t broadcast_address[6];
 
 
 typedef struct Message {
@@ -37,11 +38,11 @@ void espnow_send_cb(const uint8_t *mac_addr, esp_now_send_status_t status);
 
 void initWifi();
 
-void initESPNOW(uint8_t node_id, esp_now_recv_cb_t recvCallback, esp_now_send_cb_t sendCallback);
+void initESPNOW(esp_now_recv_cb_t recvCallback, esp_now_send_cb_t sendCallback);
 
-void send_calibration_complete(uint8_t node_id);
-
-bool check_calibration_complete();
+void send_calibration_complete();
+void set_calibration_finished(const uint8_t *mac_address);
+int check_calibration_complete();
 
 
 #endif //MASTERTHESIS_ESP_NOW_MANAGER_H
