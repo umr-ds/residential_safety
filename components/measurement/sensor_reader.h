@@ -5,8 +5,11 @@
 #include "stdint.h"
 #include "driver/gpio.h"
 
+
+#define LED_PIN GPIO_NUM_13
+
 // GPIO13 D13
-#define PIR_SENSOR_PIN GPIO_NUM_13
+#define PIR_SENSOR_PIN GPIO_NUM_12
 
 // GPIO12 D27
 #define HALL_SENSOR_PIN GPIO_NUM_27
@@ -22,6 +25,8 @@
 
 // GPIO37
 #define ACCELEROMETER_INTR_PIN GPIO_NUM_37
+
+#define BUTTON_PIN GPIO_NUM_38
 
 #define I2C_PORT        I2C_NUM_0
 #define I2C_SDA_PIN     22
@@ -48,8 +53,17 @@ typedef struct Acceleration {
 } Acceleration;
 
 //void initSensors(gpio_isr_t isr);
+
+void initButton(gpio_isr_t button_isr);
+
+void set_led_level(uint8_t level);
+int get_led_level();
+
+
 void initSensors();
 void configureInterruptAccelerometer();
+
+
 int readPIRSensor();
 int readHallSensor();
 int readLeakageSensor();
