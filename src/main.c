@@ -2,6 +2,8 @@
 #include "main.h"
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
+#include <string.h>
+#include "freertos/semphr.h"
 #include "esp_timer.h"
 #include "sensor_reader.h"
 #include "communication.h"
@@ -19,34 +21,27 @@ extern const uint8_t ulp_main_bin_end[]   asm("_binary_ulp_main_bin_end");
 static const char *MEASUREMENT = "MEASUREMENT";
 static const char *INFO = "INFO";
 
-RTC_DATA_ATTR bool calibrated = false;
-RTC_DATA_ATTR bool voting = false;
+RTC_DATA_ATTR int calibrated = 0;
+RTC_DATA_ATTR int voting = 0;
 
+SemaphoreHandle_t buttonSemaphore;
 Message message;
-volatile int messageReceivedFlag = 0;
-volatile int ISRFlag = GPIO_NUM_NC;
 
-void ISR(void* arg) {
-    ESP_LOGI(INFO, "ISR Called\n");
-    gpio_num_t pin = (gpio_num_t)arg;
-    switch (pin) {
-        case PIR_SENSOR_PIN:
-            ISRFlag = PIR_FLAG;
-            ESP_LOGI(MEASUREMENT, "PIR Interrupt\n");
-            break;
-        case HALL_SENSOR_PIN:
-            ISRFlag = HALL_FLAG;
-            ESP_LOGI(MEASUREMENT, "Hall Interrupt\n");
-            break;
-        case LEAKAGE_SENSOR_PIN:
-            ISRFlag = LEAKAGE_FLAG;
-            ESP_LOGI(MEASUREMENT, "Leakage Interrupt\n");
-            break;
-        default:
-            break;
+void IRAM_ATTR button_isr_handler(void* arg) {
+    xSemaphoreGiveFromISR(buttonSemaphore, NULL);
+}
 
+void button_task(void *pvParameter) {
+    static int led_level = 0;
+    while (1) {
+        // Wait for the semaphore to be given by the ISR
+        if (xSemaphoreTake(buttonSemaphore, portMAX_DELAY) == pdTRUE) {
+            if(led_level == 0) set_led_level(1);
+            else if (led_level == 1) set_led_level(0);
+            led_level = led_level^1;
+        }
     }
-};
+}
 
 static void init_ulp_program(void) {
     esp_err_t err = ulp_load_binary(0, ulp_main_bin_start, (ulp_main_bin_end - ulp_main_bin_start) / sizeof(uint32_t));
@@ -83,25 +78,46 @@ void calibrate() {
     calibrateCO(NUM_CALIBRATION_VALUES, &mean_co, &stdDev_co);
     calibrateOdor(NUM_CALIBRATION_VALUES, &mean_odor, &stdDev_odor);
     calibrateAccelerometer(NUM_CALIBRATION_VALUES, &mean_accel, &stdDev_accel);
-    calibrated = true;
+    calibrated = 1;
 
     ESP_LOGI(MEASUREMENT, "CO Mean: %f, CO StdDev: %f, "
                           "Odor Mean: %f, Odor StdDev: %f "
                           "Temp Mean: %f, Temp StdDev: %f"
                           "Accel Mean X: %f, Accel Mean Y: %f, Accel Mean Z: %f,"
                           "Accel StdDev X: %f, Accel StdDev Y: %f, Accel StdDev Z: %f\n",
-                          mean_co, stdDev_co,
-                          mean_odor, stdDev_odor,
-                          mean_temperature, stdDev_temperature,
-                          mean_accel.x, mean_accel.y, mean_accel.z,
-                          stdDev_accel.x, stdDev_accel.y, stdDev_accel.z);
+             mean_co, stdDev_co,
+             mean_odor, stdDev_odor,
+             mean_temperature, stdDev_temperature,
+             mean_accel.x, mean_accel.y, mean_accel.z,
+             stdDev_accel.x, stdDev_accel.y, stdDev_accel.z);
 }
 
 void app_main(void)
 {
     ESP_LOGI(INFO, "Initializing Sensors.\n");
     initSensors();
-    if(calibrated == false) calibrate();
+    set_led_level(1);
+    vTaskDelay(1000/portTICK_PERIOD_MS);
+    set_led_level(0);
+    initButton(button_isr_handler);
+    buttonSemaphore = xSemaphoreCreateBinary();
+    xTaskCreate(&button_task, "button_task", 512, NULL, 5, NULL);
+
+    initWifi();
+    initESPNOW(espnow_recv_cb, espnow_send_cb);
+    if(calibrated == 0){
+        calibrate();
+        int64_t start_time = esp_timer_get_time();
+        // Wait for 30 seconds
+        while((esp_timer_get_time()-start_time <= 1000*1000*30)) {
+            if(check_calibration_complete() == 1) break;
+            printf("Check calibration complete status: %i\n", check_calibration_complete());
+            send_calibration_complete();
+            ESP_LOGI(INFO, "Waiting for calibration complete\n");
+            vTaskDelay(2000/ portTICK_PERIOD_MS);
+        }
+    }
+
     configureInterruptAccelerometer();
     // Deinit ADC to be used for ulp again
     ESP_ERROR_CHECK(adc_oneshot_del_unit(adc1_handle));
@@ -163,8 +179,19 @@ void app_main(void)
 }
 
 void espnow_recv_cb(const esp_now_recv_info_t *recv_info, const uint8_t *data, int len) {
-    message = *(Message *)data;
-    messageReceivedFlag = 1;
+    message = *(Message*)data;
+
+    printf("Message received from: %i\n", message.node_id);
+    printf("Message type: %i\n",message.message_type);
+    switch(message.message_type){
+        case CALIBRATION_MESSAGE_TYPE:
+            set_calibration_finished(recv_info->src_addr);
+            break;
+        default:
+            break;
+    }
+
+
 }
 
 void espnow_send_cb(const uint8_t *mac_addr, esp_now_send_status_t status) {
