@@ -8,8 +8,7 @@
 
 #define LED_PIN GPIO_NUM_13
 
-// GPIO13 D13
-#define PIR_SENSOR_PIN GPIO_NUM_12
+
 
 // GPIO12 D27
 #define HALL_SENSOR_PIN GPIO_NUM_27
@@ -17,8 +16,8 @@
 // GPIO34 A2
 #define CO_SENSOR_ADC_CHANNEL ADC_CHANNEL_6
 
-// GPIO39 A3
-#define ODOR_SENSOR_ADC_CHANNEL ADC_CHANNEL_3
+// GPIO33
+#define PIR_SENSOR_PIN GPIO_NUM_33
 
 // GPIO36 A4
 #define LEAKAGE_SENSOR_PIN GPIO_NUM_36
@@ -27,6 +26,9 @@
 #define ACCELEROMETER_INTR_PIN GPIO_NUM_37
 
 #define BUTTON_PIN GPIO_NUM_38
+
+// GPIO39 A3
+#define ODOR_SENSOR_ADC_CHANNEL ADC_CHANNEL_3
 
 #define I2C_PORT        I2C_NUM_0
 #define I2C_SDA_PIN     22
@@ -55,9 +57,13 @@ typedef struct Acceleration {
 //void initSensors(gpio_isr_t isr);
 
 void initButton(gpio_isr_t button_isr);
+void initLED();
 
 void set_led_level(uint8_t level);
 int get_led_level();
+
+void initLeakageSensor();
+int readLeakageSensor();
 
 
 void initSensors();
@@ -66,7 +72,7 @@ void configureInterruptAccelerometer();
 
 int readPIRSensor();
 int readHallSensor();
-int readLeakageSensor();
+
 uint32_t readCOSensor();
 uint32_t readOdorSensor();
 float readTemperatureSensor();
@@ -74,7 +80,6 @@ Acceleration readAccelerometer();
 
 void calibrateOdor(int numValues, float *mean, float *stdDev);
 void calibrateCO(int numValues, float *mean, float *stdDev);
-void calibrateTemperature(int numValues, float *mean, float *stdDev);
 void calibrateAccelerometer(int numValues, Acceleration *mean, Acceleration *stdDev);
 
 #endif //MASTERTHESIS_SENSOR_READER_H

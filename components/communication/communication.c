@@ -6,9 +6,7 @@
 #include "string.h"
 #include "esp_mac.h"
 
-//bool calibration_finished[5] = {false, false, false, false, false};
-int calibration_finished[NUM_SENSORS];
-uint8_t mac_addresses[5][6] = {
+const uint8_t mac_addresses[5][6] = {
         {0xE8, 0x9F, 0x6D, 0x33, 0x07, 0x7C},
         {0xE8, 0x9F, 0x6D, 0x32, 0x51, 0x68},
         {0xE8, 0x9F, 0x6D, 0x30, 0xDF, 0x94},
@@ -17,6 +15,38 @@ uint8_t mac_addresses[5][6] = {
 };
 
 uint8_t own_mac[6];
+
+
+int mac_addresses_equal(const uint8_t* mac1, const uint8_t* mac2) {
+    // Compare each byte of the MAC addresses
+    for (int i = 0; i < 6; i++) {
+        if (mac1[i] != mac2[i]) {
+            return 0; // MAC addresses are different
+        }
+    }
+    return 1; // MAC addresses are the same
+}
+
+int find_mac_address(const uint8_t mac_to_find[6]) {
+    for (int i = 0; i < 5; i++) {
+        if (memcmp(mac_addresses[i], mac_to_find, 6) == 0) {
+            return i; // MAC address found at index i
+        }
+    }
+    return -1; // MAC address not found
+}
+
+uint8_t* get_own_mac(){
+    return own_mac;
+}
+
+const uint8_t* get_mac_address(uint8_t node_id){
+    return mac_addresses[node_id];
+}
+
+uint8_t get_node_id(uint8_t *mac_address){
+    return find_mac_address(mac_address);
+}
 
 void initWifi() {
     esp_err_t ret = nvs_flash_init();
@@ -29,35 +59,13 @@ void initWifi() {
     ESP_ERROR_CHECK(esp_event_loop_create_default());
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK(esp_wifi_init(&cfg));
-    ESP_ERROR_CHECK(esp_wifi_set_storage(WIFI_STORAGE_RAM));
+    ESP_ERROR_CHECK(esp_wifi_set_storage(WIFI_STORAGE_FLASH));
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
     ESP_ERROR_CHECK(esp_wifi_start());
 
 }
-int mac_addresses_equal(const uint8_t* mac1, const uint8_t* mac2) {
-    // Compare each byte of the MAC addresses
-    for (int i = 0; i < 6; i++) {
-        if (mac1[i] != mac2[i]) {
-            return 0; // MAC addresses are different
-        }
-    }
-    return 1; // MAC addresses are the same
-}
-
-
-int find_mac_address(const uint8_t mac_to_find[6]) {
-    for (int i = 0; i < 5; i++) {
-        if (memcmp(mac_addresses[i], mac_to_find, 6) == 0) {
-            return i; // MAC address found at index i
-        }
-    }
-    return -1; // MAC address not found
-}
 
 void initESPNOW(esp_now_recv_cb_t recvCallback, esp_now_send_cb_t sendCallback) {
-    for(int i = 0; i < NUM_SENSORS; i++){
-        calibration_finished[i] = 0;
-    }
     ESP_ERROR_CHECK(esp_now_init());
     ESP_ERROR_CHECK(esp_now_register_recv_cb(recvCallback));
     ESP_ERROR_CHECK(esp_now_register_send_cb(sendCallback));
@@ -72,42 +80,33 @@ void initESPNOW(esp_now_recv_cb_t recvCallback, esp_now_send_cb_t sendCallback) 
             ESP_ERROR_CHECK(esp_now_add_peer(&peerInfo));
         }
     }
+
 }
 
-void send_calibration_complete() {
-    int node_id = find_mac_address(own_mac);
-    if(node_id == -1 || node_id >= NUM_SENSORS) {
-        printf("Could not find mac address\n");
-        return;
-    }
-    calibration_finished[node_id] = true;
-    Message msg;
-    memset(&msg, 0, sizeof(msg));
-    memcpy(&msg.node_id, &node_id, sizeof(node_id));
-    msg.message_type = CALIBRATION_MESSAGE_TYPE;
-    msg.data.calibration_msg.calibration_finished = true;
+void send_ack_message(uint8_t event_flag, uint8_t dest_node_id){
+    Message message = {
+            .src_node_id = find_mac_address(own_mac),
+            .message_type = ACK_MESSAGE_TYPE,
+            .data.ack_msg.event_flag = event_flag
+    };
+    esp_now_send(mac_addresses[dest_node_id], (uint8_t*)&message, sizeof(message));
+}
+
+void send_message_to_node(Message message, uint8_t dest_node_id){
+    printf("Sending message to node: %i\n", dest_node_id);
+    esp_now_send(mac_addresses[dest_node_id], (uint8_t*)&message, sizeof(message));
+}
+
+void broadcast_message(Message message) {
+    message.src_node_id = find_mac_address(own_mac);
     for (int i = 0; i < NUM_SENSORS; i++) {
         if (mac_addresses_equal(own_mac, mac_addresses[i]) != 1) {
-            esp_now_send(mac_addresses[i], (uint8_t * ) & msg, sizeof(msg));
+            //printf("Sending message with type %u: from %i\n", message.message_type, node_id);
+            //printf("Sending to mac address: %x %x %x %x %x %x\n", mac_addresses[i][0], mac_addresses[i][1], mac_addresses[i][2], mac_addresses[i][3], mac_addresses[i][4] ,mac_addresses[i][5]);
+            esp_now_send(mac_addresses[i], (uint8_t * )&message, sizeof(message));
         }
     }
-
 }
 
-void set_calibration_finished(const uint8_t *mac_address){
-    int node_id = find_mac_address(mac_address);
-    if(node_id == -1 || node_id >= NUM_SENSORS) {
-        printf("Could not find mac address\n");
-        return;
-    }
-    calibration_finished[node_id] = true;
-}
 
-int check_calibration_complete() {
-    for (int i = 0; i < NUM_SENSORS; i++) {
-        printf(calibration_finished[i] == 0 ? "Calibration at index %i is false\n" : "Calibration at index %i is true\n", i);
-        if (calibration_finished[i] == 0) return 0;
-    }
-    return 1;
-}
 

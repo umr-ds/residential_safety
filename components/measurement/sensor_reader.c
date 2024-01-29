@@ -4,6 +4,16 @@
 
 adc_oneshot_unit_handle_t adc1_handle;
 
+void initLeakageSensor(){
+    gpio_config_t io_conf;
+    io_conf.intr_type = GPIO_INTR_DISABLE;
+    io_conf.mode = GPIO_MODE_INPUT;
+    io_conf.pin_bit_mask = (1ULL << LEAKAGE_SENSOR_PIN);
+    io_conf.pull_down_en = GPIO_PULLDOWN_ENABLE;
+    io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
+    gpio_config(&io_conf);
+}
+
 void initGPIOs(gpio_isr_t isr){
     gpio_config_t io_conf;
     io_conf.intr_type = GPIO_INTR_HIGH_LEVEL;
@@ -52,8 +62,6 @@ void initButton(gpio_isr_t button_isr){
     gpio_isr_handler_add(BUTTON_PIN, button_isr, (void*)BUTTON_PIN);
 }
 
-
-
 void initI2CDriver() {
     i2c_config_t i2c_cfg = {
             .mode = I2C_MODE_MASTER,
@@ -99,7 +107,7 @@ void initSensors() {
 
     adc_oneshot_chan_cfg_t config = {
             .bitwidth = ADC_BITWIDTH_DEFAULT,
-            .atten = ADC_ATTEN_DB_11,
+            .atten = ADC_ATTEN_DB_0 ,
     };
 
     ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1_handle, CO_SENSOR_ADC_CHANNEL, &config));
@@ -113,8 +121,6 @@ void initSensors() {
 
     /// Init I2C for LIS3DH (Accelerometer)
     initAccelerometer();
-
-    initLED();
 }
 
 void configureInterruptAccelerometer() {
@@ -145,7 +151,7 @@ int readPIRSensor(){
 }
 
 int readLeakageSensor(){
-    return gpio_get_level(GPIO_NUM_36);
+    return gpio_get_level(LEAKAGE_SENSOR_PIN);
 }
 
 int readHallSensor(){
@@ -154,7 +160,7 @@ int readHallSensor(){
 
 uint32_t readCOSensor() {
     int raw = 0;
-    adc_oneshot_read(adc1_handle, ODOR_SENSOR_ADC_CHANNEL, &raw);
+    adc_oneshot_read(adc1_handle, CO_SENSOR_ADC_CHANNEL, &raw);
     return raw;
 }
 
@@ -223,21 +229,6 @@ void calibrateCO(int numValues, float *mean, float *stdDev) {
 
     for (int i = 0; i < numValues; i++) {
         sensorValues[i] = readCOSensor();
-        *mean += sensorValues[i];
-    }
-    *mean = *mean / numValues;
-
-    for (int i = 0; i < numValues; i++) {
-        *stdDev += pow(sensorValues[i] - *mean, 2);
-    }
-    *stdDev = sqrt(*stdDev / numValues);
-}
-
-void calibrateTemperature(int numValues, float *mean, float *stdDev) {
-    float sensorValues[numValues];
-
-    for (int i = 0; i < numValues; i++) {
-        sensorValues[i] = readTemperatureSensor();
         *mean += sensorValues[i];
     }
     *mean = *mean / numValues;
