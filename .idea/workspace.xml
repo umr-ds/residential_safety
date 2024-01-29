@@ -14,15 +14,18 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6fb98cdb-da65-4f4a-92d4-1681183f1b03" name="Changes" comment="refactor: undo last commit">
-      <change afterPath="$PROJECT_DIR$/components/communication/CMakeLists.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/communication/communication.c" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/communication/communication.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/measurement/CMakeLists.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/measurement/sensor_reader.c" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/measurement/sensor_reader.h" afterDir="false" />
+    <list default="true" id="6fb98cdb-da65-4f4a-92d4-1681183f1b03" name="Changes" comment="feat: add calibration complete check, add isr for button and led for indication">
+      <change afterPath="$PROJECT_DIR$/components/voting/CMakeLists.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/components/voting/voting.c" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/components/voting/voting.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/include/weights.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/communication/communication.c" beforeDir="false" afterPath="$PROJECT_DIR$/components/communication/communication.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/communication/communication.h" beforeDir="false" afterPath="$PROJECT_DIR$/components/communication/communication.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/measurement/sensor_reader.c" beforeDir="false" afterPath="$PROJECT_DIR$/components/measurement/sensor_reader.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/measurement/sensor_reader.h" beforeDir="false" afterPath="$PROJECT_DIR$/components/measurement/sensor_reader.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/include/main.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/main.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/sdkconfig.adafruit_feather_esp32_v2" beforeDir="false" afterPath="$PROJECT_DIR$/sdkconfig.adafruit_feather_esp32_v2" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/src/CMakeLists.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main.c" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.c" afterDir="false" />
     </list>
@@ -40,25 +43,37 @@
       <ProjectState />
     </projectState>
   </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="CMakeLists.txt" />
+      </list>
+    </option>
+  </component>
   <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="main" />
+      </map>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="GitLabMergeRequestFiltersHistory"><![CDATA[{
-  "lastFilter": {
-    "state": "OPENED",
-    "assignee": {
-      "type": "org.jetbrains.plugins.gitlab.mergerequest.ui.filters.GitLabMergeRequestsFiltersValue.MergeRequestsMemberFilterValue.MergeRequestsAssigneeFilterValue",
-      "username": "luettge",
-      "fullname": "Kevin Lüttge"
+  <component name="GitLabMergeRequestFiltersHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPENED&quot;,
+    &quot;assignee&quot;: {
+      &quot;type&quot;: &quot;org.jetbrains.plugins.gitlab.mergerequest.ui.filters.GitLabMergeRequestsFiltersValue.MergeRequestsMemberFilterValue.MergeRequestsAssigneeFilterValue&quot;,
+      &quot;username&quot;: &quot;luettge&quot;,
+      &quot;fullname&quot;: &quot;Kevin Lüttge&quot;
     }
   }
-}]]></component>
-  <component name="GitLabMergeRequestsSettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "first": "https://gitlab.uni-marburg.de/fb12/ag-freisleben/teaching/theses/ma-kevinluettge.git",
-    "second": "1c4e334e-4df7-4061-b344-5dace32b5e66"
+}</component>
+  <component name="GitLabMergeRequestsSettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;first&quot;: &quot;https://gitlab.uni-marburg.de/fb12/ag-freisleben/teaching/theses/ma-kevinluettge.git&quot;,
+    &quot;second&quot;: &quot;1c4e334e-4df7-4061-b344-5dace32b5e66&quot;
   }
-}]]></component>
+}</component>
   <component name="PlatformioLocalSettings">
     <option name="availableProjects">
       <map>
@@ -91,33 +106,34 @@
     <option name="majorVersion" value="2023" />
     <option name="minorVersion" value="3.2" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 2
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 2
+}</component>
   <component name="ProjectId" id="2aXxo3yyZpI3vn8OlmZEn6qnq8V" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.cidr.known.project.marker": "true",
-    "RunOnceActivity.readMode.enableVisualFormatting": "true",
-    "cf.first.check.clang-format": "false",
-    "cidr.known.project.marker": "true",
-    "git-widget-placeholder": "main",
-    "ignore.virus.scanning.warn.message": "true",
-    "last_opened_file_path": "C:/Users/Kevin/Desktop/UniMarburg/masterthesis/components/measurement",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;PlatformIO.PlatformIO.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.readMode.enableVisualFormatting&quot;: &quot;true&quot;,
+    &quot;cf.first.check.clang-format&quot;: &quot;false&quot;,
+    &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;dev&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/Kevin/Desktop/UniMarburg/masterthesis/components/measurement&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\Kevin\Desktop\UniMarburg\masterthesis\components\measurement" />
@@ -125,6 +141,7 @@
     </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Users\Kevin\Desktop\UniMarburg\masterthesis" />
+      <recent name="C:\Users\Kevin\Desktop\UniMarburg\masterthesis\src" />
     </key>
   </component>
   <component name="RunManager">
@@ -132,6 +149,51 @@
       <method v="2">
         <option name="CLION.EXTERNAL.BUILD" enabled="true" />
       </method>
+    </configuration>
+    <configuration name="PlatformIO" type="platformio" factoryName="PlatformIO Debug" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="masterthesis" TARGET_NAME="PlatformIO" CONFIG_NAME="PlatformIO">
+      <method v="2" />
+    </configuration>
+    <configuration name="PlatformIO" type="platformio" factoryName="PlatformIO Debug" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="masterthesis" TARGET_NAME="PlatformIO" CONFIG_NAME="PlatformIO">
+      <method v="2" />
+    </configuration>
+    <configuration name="PlatformIO" type="platformio" factoryName="PlatformIO Debug" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="masterthesis" TARGET_NAME="PlatformIO" CONFIG_NAME="PlatformIO">
+      <method v="2" />
+    </configuration>
+    <configuration name="PlatformIO" type="platformio" factoryName="PlatformIO Debug" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="masterthesis" TARGET_NAME="PlatformIO" CONFIG_NAME="PlatformIO">
+      <method v="2" />
+    </configuration>
+    <configuration name="PlatformIO" type="platformio" factoryName="PlatformIO Debug" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="masterthesis" TARGET_NAME="PlatformIO" CONFIG_NAME="PlatformIO">
+      <method v="2" />
+    </configuration>
+    <configuration name="PlatformIO" type="platformio" factoryName="PlatformIO Debug" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="masterthesis" TARGET_NAME="PlatformIO" CONFIG_NAME="PlatformIO">
+      <method v="2" />
+    </configuration>
+    <configuration name="PlatformIO" type="platformio" factoryName="PlatformIO Debug" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="masterthesis" TARGET_NAME="PlatformIO" CONFIG_NAME="PlatformIO">
+      <method v="2" />
+    </configuration>
+    <configuration name="PlatformIO" type="platformio" factoryName="PlatformIO Debug" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="masterthesis" TARGET_NAME="PlatformIO" CONFIG_NAME="PlatformIO">
+      <method v="2" />
+    </configuration>
+    <configuration name="PlatformIO" type="platformio" factoryName="PlatformIO Debug" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="masterthesis" TARGET_NAME="PlatformIO" CONFIG_NAME="PlatformIO">
+      <method v="2" />
+    </configuration>
+    <configuration name="PlatformIO" type="platformio" factoryName="PlatformIO Debug" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="masterthesis" TARGET_NAME="PlatformIO" CONFIG_NAME="PlatformIO">
+      <method v="2" />
+    </configuration>
+    <configuration name="PlatformIO" type="platformio" factoryName="PlatformIO Debug" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="masterthesis" TARGET_NAME="PlatformIO" CONFIG_NAME="PlatformIO">
+      <method v="2" />
+    </configuration>
+    <configuration name="PlatformIO" type="platformio" factoryName="PlatformIO Debug" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="masterthesis" TARGET_NAME="PlatformIO" CONFIG_NAME="PlatformIO">
+      <method v="2" />
+    </configuration>
+    <configuration name="PlatformIO" type="platformio" factoryName="PlatformIO Debug" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="masterthesis" TARGET_NAME="PlatformIO" CONFIG_NAME="PlatformIO">
+      <method v="2" />
+    </configuration>
+    <configuration name="PlatformIO" type="platformio" factoryName="PlatformIO Debug" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="masterthesis" TARGET_NAME="PlatformIO" CONFIG_NAME="PlatformIO">
+      <method v="2" />
+    </configuration>
+    <configuration name="PlatformIO" type="platformio" factoryName="PlatformIO Debug" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="masterthesis" TARGET_NAME="PlatformIO" CONFIG_NAME="PlatformIO">
+      <method v="2" />
     </configuration>
     <configuration name="PlatformIO" type="platformio" factoryName="PlatformIO Debug" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="masterthesis" TARGET_NAME="PlatformIO" CONFIG_NAME="PlatformIO">
       <method v="2" />
@@ -145,7 +207,34 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1704478897108</updated>
-      <workItem from="1704478898197" duration="1240000" />
+      <workItem from="1704478898197" duration="1749000" />
+      <workItem from="1704702978331" duration="5714000" />
+      <workItem from="1704712035372" duration="17178000" />
+      <workItem from="1704790593161" duration="2000" />
+      <workItem from="1704797105481" duration="2592000" />
+      <workItem from="1704878999016" duration="20000" />
+      <workItem from="1704879035915" duration="733000" />
+      <workItem from="1704885098052" duration="3565000" />
+      <workItem from="1704958144419" duration="12000" />
+      <workItem from="1705320025566" duration="13000" />
+      <workItem from="1705487162697" duration="12372000" />
+      <workItem from="1705508094792" duration="3469000" />
+      <workItem from="1705579859440" duration="17000" />
+      <workItem from="1705670892704" duration="12000" />
+      <workItem from="1705674964383" duration="11884000" />
+      <workItem from="1705751147218" duration="15000" />
+      <workItem from="1705825952894" duration="65000" />
+      <workItem from="1705826664103" duration="3116000" />
+      <workItem from="1705928094664" duration="15000" />
+      <workItem from="1706006938638" duration="49000" />
+      <workItem from="1706010975851" duration="21000" />
+      <workItem from="1706011691981" duration="11672000" />
+      <workItem from="1706167895990" duration="14000" />
+      <workItem from="1706178447942" duration="27093000" />
+      <workItem from="1706262997710" duration="64000" />
+      <workItem from="1706263474776" duration="5831000" />
+      <workItem from="1706518703276" duration="11492000" />
+      <workItem from="1706531808427" duration="10319000" />
     </task>
     <task id="LOCAL-00001" summary="refactor: undo last commit">
       <option name="closed" value="true" />
@@ -155,14 +244,246 @@
       <option name="project" value="LOCAL" />
       <updated>1704479150570</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="feat: add communication component">
+      <option name="closed" value="true" />
+      <created>1704480348908</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1704480348908</updated>
+    </task>
+    <task id="LOCAL-00003" summary="feat: add measurement component">
+      <option name="closed" value="true" />
+      <created>1704480364506</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1704480364506</updated>
+    </task>
+    <task id="LOCAL-00004" summary="feat: add main.h">
+      <option name="closed" value="true" />
+      <created>1704480376362</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1704480376362</updated>
+    </task>
+    <task id="LOCAL-00005" summary="feat: add dependencies">
+      <option name="closed" value="true" />
+      <created>1704480400405</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1704480400405</updated>
+    </task>
+    <task id="LOCAL-00006" summary="feat: add leakage, hall and pir sensor">
+      <option name="closed" value="true" />
+      <created>1704716554873</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1704716554873</updated>
+    </task>
+    <task id="LOCAL-00007" summary="feat: changed CPU FREQ to 80 MHz for power saving">
+      <option name="closed" value="true" />
+      <created>1704719386537</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1704719386537</updated>
+    </task>
+    <task id="LOCAL-00008" summary="feat: add flags for shortening callbacks">
+      <option name="closed" value="true" />
+      <created>1704728460205</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1704728460205</updated>
+    </task>
+    <task id="LOCAL-00009" summary="feat: add ISR">
+      <option name="closed" value="true" />
+      <created>1704728478961</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1704728478961</updated>
+    </task>
+    <task id="LOCAL-00010" summary="refactor: callbacks and isr are now passed as argument to init methods">
+      <option name="closed" value="true" />
+      <created>1704730006965</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1704730006965</updated>
+    </task>
+    <task id="LOCAL-00011" summary="feat: add flags">
+      <option name="closed" value="true" />
+      <created>1704730027046</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1704730027046</updated>
+    </task>
+    <task id="LOCAL-00012" summary="feat: add basic logic for calibration/sensor reading/event handling">
+      <option name="closed" value="true" />
+      <created>1704730061790</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1704730061790</updated>
+    </task>
+    <task id="LOCAL-00013" summary="feat: enable Power Mode">
+      <option name="closed" value="true" />
+      <created>1704730073863</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1704730073863</updated>
+    </task>
+    <task id="LOCAL-00014" summary="feat: add ulp assembly files for deepsleep wakeup">
+      <option name="closed" value="true" />
+      <created>1705498055401</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1705498055401</updated>
+    </task>
+    <task id="LOCAL-00015" summary="fix: moved Hall Sensor to PIN 27 because of issues with pin 12 at deep sleep">
+      <option name="closed" value="true" />
+      <created>1705498101309</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1705498101309</updated>
+    </task>
+    <task id="LOCAL-00016" summary="refactor: removed deinitSensors method">
+      <option name="closed" value="true" />
+      <created>1705511283073</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1705511283073</updated>
+    </task>
+    <task id="LOCAL-00017" summary="refactor: initGPIOs is not used inside initSensors anymore to seperate GPIOs and other interfaces">
+      <option name="closed" value="true" />
+      <created>1705511322590</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1705511322590</updated>
+    </task>
+    <task id="LOCAL-00018" summary="refactor: renamed variables">
+      <option name="closed" value="true" />
+      <created>1705511341088</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1705511341088</updated>
+    </task>
+    <task id="LOCAL-00019" summary="feat: current logic supports deepsleep as well as wakeup cause differentiation">
+      <option name="closed" value="true" />
+      <created>1705511415990</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1705511415990</updated>
+    </task>
+    <task id="LOCAL-00020" summary="style: removed boilerplate comment">
+      <option name="closed" value="true" />
+      <created>1705685710570</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1705685710571</updated>
+    </task>
+    <task id="LOCAL-00021" summary="fix: changed lis3dh configuration">
+      <option name="closed" value="true" />
+      <created>1705685726582</created>
+      <option name="number" value="00021" />
+      <option name="presentableId" value="LOCAL-00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1705685726582</updated>
+    </task>
+    <task id="LOCAL-00022" summary="feat: add interrupt config for lis3dh">
+      <option name="closed" value="true" />
+      <created>1705687754045</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1705687754045</updated>
+    </task>
+    <task id="LOCAL-00023" summary="feat: main program now wakes up from accel interrupts too">
+      <option name="closed" value="true" />
+      <created>1705687937802</created>
+      <option name="number" value="00023" />
+      <option name="presentableId" value="LOCAL-00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1705687937802</updated>
+    </task>
+    <task id="LOCAL-00024" summary="fix: switched pir sensor to pin 12, add pin for button/led">
+      <option name="closed" value="true" />
+      <created>1706025848756</created>
+      <option name="number" value="00024" />
+      <option name="presentableId" value="LOCAL-00024" />
+      <option name="project" value="LOCAL" />
+      <updated>1706025848756</updated>
+    </task>
+    <task id="LOCAL-00025" summary="feat: add methods for button/led to switch to break-in detection mode">
+      <option name="closed" value="true" />
+      <created>1706025870856</created>
+      <option name="number" value="00025" />
+      <option name="presentableId" value="LOCAL-00025" />
+      <option name="project" value="LOCAL" />
+      <updated>1706025870856</updated>
+    </task>
+    <task id="LOCAL-00026" summary="fix: removed hardcoded node_id. identification is now done via mac address">
+      <option name="closed" value="true" />
+      <created>1706025899778</created>
+      <option name="number" value="00026" />
+      <option name="presentableId" value="LOCAL-00026" />
+      <option name="project" value="LOCAL" />
+      <updated>1706025899778</updated>
+    </task>
+    <task id="LOCAL-00027" summary="feat: add calibration complete check, add isr for button and led for indication">
+      <option name="closed" value="true" />
+      <created>1706025949673</created>
+      <option name="number" value="00027" />
+      <option name="presentableId" value="LOCAL-00027" />
+      <option name="project" value="LOCAL" />
+      <updated>1706025949673</updated>
+    </task>
+    <option name="localTasksCounter" value="28" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="refactor: undo last commit" />
-    <option name="LAST_COMMIT_MESSAGE" value="refactor: undo last commit" />
+    <MESSAGE value="feat: add measurement component" />
+    <MESSAGE value="feat: add main.h" />
+    <MESSAGE value="feat: add dependencies" />
+    <MESSAGE value="feat: add leakage, hall and pir sensor" />
+    <MESSAGE value="feat: changed CPU FREQ to 80 MHz for power saving" />
+    <MESSAGE value="feat: add flags for shortening callbacks" />
+    <MESSAGE value="feat: add ISR" />
+    <MESSAGE value="refactor: callbacks and isr are now passed as argument to init methods" />
+    <MESSAGE value="feat: add flags" />
+    <MESSAGE value="feat: add basic logic for calibration/sensor reading/event handling" />
+    <MESSAGE value="feat: enable Power Mode" />
+    <MESSAGE value="feat: add ulp assembly files for deepsleep wakeup" />
+    <MESSAGE value="fix: moved Hall Sensor to PIN 27 because of issues with pin 12 at deep sleep" />
+    <MESSAGE value="refactor: removed deinitSensors method" />
+    <MESSAGE value="refactor: initGPIOs is not used inside initSensors anymore to seperate GPIOs and other interfaces" />
+    <MESSAGE value="refactor: renamed variables" />
+    <MESSAGE value="feat: current logic supports deepsleep as well as wakeup cause differentiation" />
+    <MESSAGE value="style: removed boilerplate comment" />
+    <MESSAGE value="fix: changed lis3dh configuration" />
+    <MESSAGE value="feat: add interrupt config for lis3dh" />
+    <MESSAGE value="feat: main program now wakes up from accel interrupts too" />
+    <MESSAGE value="fix: switched pir sensor to pin 12, add pin for button/led" />
+    <MESSAGE value="feat: add methods for button/led to switch to break-in detection mode" />
+    <MESSAGE value="fix: removed hardcoded node_id. identification is now done via mac address" />
+    <MESSAGE value="feat: add calibration complete check, add isr for button and led for indication" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat: add calibration complete check, add isr for button and led for indication" />
   </component>
 </project>

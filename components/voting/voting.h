@@ -11,9 +11,13 @@
 #define GAS_LEAKAGE_FLAG 5
 
 float calculate_water_leakage_vote();
+
 int calculate_gas_leakage_vote();
+
 int calculate_intrusion_vote();
+
 int calculate_fire_vote();
+
 int calculate_shock_vote();
 
 void init_votes();

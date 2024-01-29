@@ -13,7 +13,4 @@ RTC_DATA_ATTR Acceleration mean_accel;
 RTC_DATA_ATTR Acceleration stdDev_accel;
 
 
-
-
-
 #endif //MASTERTHESIS_MAIN_H

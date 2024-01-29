@@ -4,7 +4,7 @@
 
 adc_oneshot_unit_handle_t adc1_handle;
 
-void initLeakageSensor(){
+void initLeakageSensor() {
     gpio_config_t io_conf;
     io_conf.intr_type = GPIO_INTR_DISABLE;
     io_conf.mode = GPIO_MODE_INPUT;
@@ -14,7 +14,7 @@ void initLeakageSensor(){
     gpio_config(&io_conf);
 }
 
-void initGPIOs(gpio_isr_t isr){
+void initGPIOs(gpio_isr_t isr) {
     gpio_config_t io_conf;
     io_conf.intr_type = GPIO_INTR_HIGH_LEVEL;
     io_conf.mode = GPIO_MODE_INPUT;
@@ -25,12 +25,12 @@ void initGPIOs(gpio_isr_t isr){
 
     gpio_install_isr_service(0);
 
-    gpio_isr_handler_add(LEAKAGE_SENSOR_PIN, isr, (void*)LEAKAGE_SENSOR_PIN);
-    gpio_isr_handler_add(HALL_SENSOR_PIN, isr, (void*)HALL_SENSOR_PIN);
-    gpio_isr_handler_add(PIR_SENSOR_PIN, isr, (void*)PIR_SENSOR_PIN);
+    gpio_isr_handler_add(LEAKAGE_SENSOR_PIN, isr, (void *) LEAKAGE_SENSOR_PIN);
+    gpio_isr_handler_add(HALL_SENSOR_PIN, isr, (void *) HALL_SENSOR_PIN);
+    gpio_isr_handler_add(PIR_SENSOR_PIN, isr, (void *) PIR_SENSOR_PIN);
 }
 
-void initLED(){
+void initLED() {
     gpio_config_t io_conf = {
             .pin_bit_mask = (1ULL << LED_PIN),
             .mode = GPIO_MODE_OUTPUT,
@@ -41,15 +41,15 @@ void initLED(){
     gpio_config(&io_conf);
 }
 
-void set_led_level(uint8_t level){
+void set_led_level(uint8_t level) {
     gpio_set_level(LED_PIN, level);
 }
 
-int get_led_level(){
+int get_led_level() {
     return gpio_get_level(LED_PIN);
 }
 
-void initButton(gpio_isr_t button_isr){
+void initButton(gpio_isr_t button_isr) {
     gpio_config_t io_conf = {
             .pin_bit_mask = (1ULL << BUTTON_PIN),
             .mode = GPIO_MODE_INPUT,
@@ -59,7 +59,7 @@ void initButton(gpio_isr_t button_isr){
     };
     gpio_config(&io_conf);
     gpio_install_isr_service(0);
-    gpio_isr_handler_add(BUTTON_PIN, button_isr, (void*)BUTTON_PIN);
+    gpio_isr_handler_add(BUTTON_PIN, button_isr, (void *) BUTTON_PIN);
 }
 
 void initI2CDriver() {
@@ -107,7 +107,7 @@ void initSensors() {
 
     adc_oneshot_chan_cfg_t config = {
             .bitwidth = ADC_BITWIDTH_DEFAULT,
-            .atten = ADC_ATTEN_DB_0 ,
+            .atten = ADC_ATTEN_DB_0,
     };
 
     ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1_handle, CO_SENSOR_ADC_CHANNEL, &config));
@@ -146,15 +146,15 @@ void configureInterruptAccelerometer() {
 
 }
 
-int readPIRSensor(){
+int readPIRSensor() {
     return gpio_get_level(PIR_SENSOR_PIN);
 }
 
-int readLeakageSensor(){
+int readLeakageSensor() {
     return gpio_get_level(LEAKAGE_SENSOR_PIN);
 }
 
-int readHallSensor(){
+int readHallSensor() {
     return gpio_get_level(HALL_SENSOR_PIN);
 }
 
@@ -194,17 +194,17 @@ Acceleration readAccelerometer() {
 
     // Convert raw data to 16-bit signed integers
     // and shift by 4 because of 12-bit data
-    int16_t x,y,z;
-    x = ((int16_t)data[1]<<8)+(uint16_t)data[0];
-    x = x>>4;
-    y = ((int16_t)data[3]<<8)+(uint16_t)data[2];
-    y = y>>4;
-    z = ((int16_t)data[5]<<8)+(uint16_t)data[4];
-    z= z>>4;
+    int16_t x, y, z;
+    x = ((int16_t) data[1] << 8) + (uint16_t) data[0];
+    x = x >> 4;
+    y = ((int16_t) data[3] << 8) + (uint16_t) data[2];
+    y = y >> 4;
+    z = ((int16_t) data[5] << 8) + (uint16_t) data[4];
+    z = z >> 4;
     float sensitivity = 0.002; // 2mg per digit
-    acceleration.x = (float)x*sensitivity;
-    acceleration.y = (float)y*sensitivity;
-    acceleration.z = (float)z*sensitivity;
+    acceleration.x = (float) x * sensitivity;
+    acceleration.y = (float) y * sensitivity;
+    acceleration.z = (float) z * sensitivity;
 
     return acceleration;
 }

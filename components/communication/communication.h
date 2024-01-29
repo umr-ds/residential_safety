@@ -44,13 +44,17 @@ void initWifi();
 
 void initESPNOW(esp_now_recv_cb_t recvCallback, esp_now_send_cb_t sendCallback);
 
-uint8_t* get_own_mac();
-const uint8_t* get_mac_address(uint8_t node_id);
+uint8_t *get_own_mac();
+
+const uint8_t *get_mac_address(uint8_t node_id);
+
 uint8_t get_node_id(uint8_t *mac_address);
 
 
 void broadcast_message(Message msg);
+
 void send_ack_message(uint8_t event_flag, uint8_t dest_node_id);
+
 void send_message_to_node(Message message, uint8_t dest_node_id);
 
 

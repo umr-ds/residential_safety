@@ -17,7 +17,7 @@ const uint8_t mac_addresses[5][6] = {
 uint8_t own_mac[6];
 
 
-int mac_addresses_equal(const uint8_t* mac1, const uint8_t* mac2) {
+int mac_addresses_equal(const uint8_t *mac1, const uint8_t *mac2) {
     // Compare each byte of the MAC addresses
     for (int i = 0; i < 6; i++) {
         if (mac1[i] != mac2[i]) {
@@ -36,15 +36,15 @@ int find_mac_address(const uint8_t mac_to_find[6]) {
     return -1; // MAC address not found
 }
 
-uint8_t* get_own_mac(){
+uint8_t *get_own_mac() {
     return own_mac;
 }
 
-const uint8_t* get_mac_address(uint8_t node_id){
+const uint8_t *get_mac_address(uint8_t node_id) {
     return mac_addresses[node_id];
 }
 
-uint8_t get_node_id(uint8_t *mac_address){
+uint8_t get_node_id(uint8_t *mac_address) {
     return find_mac_address(mac_address);
 }
 
@@ -71,7 +71,7 @@ void initESPNOW(esp_now_recv_cb_t recvCallback, esp_now_send_cb_t sendCallback) 
     ESP_ERROR_CHECK(esp_now_register_send_cb(sendCallback));
     esp_read_mac(own_mac, ESP_MAC_WIFI_STA);
     for (int i = 0; i < NUM_SENSORS; i++) {
-        if(mac_addresses_equal(own_mac, mac_addresses[i]) != 1) {
+        if (mac_addresses_equal(own_mac, mac_addresses[i]) != 1) {
             esp_now_peer_info_t peerInfo;
             peerInfo.channel = 0;
             peerInfo.ifidx = ESP_IF_WIFI_STA;
@@ -83,27 +83,24 @@ void initESPNOW(esp_now_recv_cb_t recvCallback, esp_now_send_cb_t sendCallback) 
 
 }
 
-void send_ack_message(uint8_t event_flag, uint8_t dest_node_id){
+void send_ack_message(uint8_t event_flag, uint8_t dest_node_id) {
     Message message = {
             .src_node_id = find_mac_address(own_mac),
             .message_type = ACK_MESSAGE_TYPE,
             .data.ack_msg.event_flag = event_flag
     };
-    esp_now_send(mac_addresses[dest_node_id], (uint8_t*)&message, sizeof(message));
+    esp_now_send(mac_addresses[dest_node_id], (uint8_t *) &message, sizeof(message));
 }
 
-void send_message_to_node(Message message, uint8_t dest_node_id){
-    printf("Sending message to node: %i\n", dest_node_id);
-    esp_now_send(mac_addresses[dest_node_id], (uint8_t*)&message, sizeof(message));
+void send_message_to_node(Message message, uint8_t dest_node_id) {
+    esp_now_send(mac_addresses[dest_node_id], (uint8_t *) &message, sizeof(message));
 }
 
 void broadcast_message(Message message) {
     message.src_node_id = find_mac_address(own_mac);
     for (int i = 0; i < NUM_SENSORS; i++) {
         if (mac_addresses_equal(own_mac, mac_addresses[i]) != 1) {
-            //printf("Sending message with type %u: from %i\n", message.message_type, node_id);
-            //printf("Sending to mac address: %x %x %x %x %x %x\n", mac_addresses[i][0], mac_addresses[i][1], mac_addresses[i][2], mac_addresses[i][3], mac_addresses[i][4] ,mac_addresses[i][5]);
-            esp_now_send(mac_addresses[i], (uint8_t * )&message, sizeof(message));
+            esp_now_send(mac_addresses[i], (uint8_t *) &message, sizeof(message));
         }
     }
 }

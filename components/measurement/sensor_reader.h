@@ -57,29 +57,39 @@ typedef struct Acceleration {
 //void initSensors(gpio_isr_t isr);
 
 void initButton(gpio_isr_t button_isr);
+
 void initLED();
 
 void set_led_level(uint8_t level);
+
 int get_led_level();
 
 void initLeakageSensor();
+
 int readLeakageSensor();
 
 
 void initSensors();
+
 void configureInterruptAccelerometer();
 
 
 int readPIRSensor();
+
 int readHallSensor();
 
 uint32_t readCOSensor();
+
 uint32_t readOdorSensor();
+
 float readTemperatureSensor();
+
 Acceleration readAccelerometer();
 
 void calibrateOdor(int numValues, float *mean, float *stdDev);
+
 void calibrateCO(int numValues, float *mean, float *stdDev);
+
 void calibrateAccelerometer(int numValues, Acceleration *mean, Acceleration *stdDev);
 
 #endif //MASTERTHESIS_SENSOR_READER_H
