@@ -10,6 +10,8 @@
 #define SHOCK_FLAG 4
 #define GAS_LEAKAGE_FLAG 5
 
+#define NUM_SAMPLE_VALUES 500
+
 float calculate_water_leakage_vote();
 
 int calculate_gas_leakage_vote();

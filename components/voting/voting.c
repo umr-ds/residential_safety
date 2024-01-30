@@ -47,6 +47,21 @@ Message start_voting(int event_flag) {
             msg.data.voting_msg.vote = vote;
             msg.data.voting_msg.event_flag = event_flag;
             return msg;
+        case SHOCK_FLAG:
+            vote = (float) calculate_shock_vote();
+            msg.data.voting_msg.vote = vote;
+            msg.data.voting_msg.event_flag = event_flag;
+            return msg;
+        case FIRE_FLAG:
+            vote = (float) calculate_fire_vote();
+            msg.data.voting_msg.vote = vote;
+            msg.data.voting_msg.event_flag = event_flag;
+            return msg;
+        case GAS_LEAKAGE_FLAG:
+            vote = (float) calculate_gas_leakage_vote();
+            msg.data.voting_msg.vote = vote;
+            msg.data.voting_msg.event_flag = event_flag;
+            return msg;
         default:
             return msg;
     }
@@ -74,6 +89,30 @@ uint8_t calculate_decision(int event_flag) {
     }
     switch (event_flag) {
         case WATER_LEAKAGE_FLAG:
+            if (sum_votes > NUM_SENSORS / 2) {
+                printf("Accepting\n");
+                return 1;
+            } else {
+                printf("No majority reached\n");
+                return 0;
+            }
+        case SHOCK_FLAG:
+            if (sum_votes > NUM_SENSORS / 2) {
+                printf("Accepting\n");
+                return 1;
+            } else {
+                printf("No majority reached\n");
+                return 0;
+            }
+        case FIRE_FLAG:
+            if (sum_votes > NUM_SENSORS / 2) {
+                printf("Accepting\n");
+                return 1;
+            } else {
+                printf("No majority reached\n");
+                return 0;
+            }
+        case GAS_LEAKAGE_FLAG:
             if (sum_votes > NUM_SENSORS / 2) {
                 printf("Accepting\n");
                 return 1;
