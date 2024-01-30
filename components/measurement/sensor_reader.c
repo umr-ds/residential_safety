@@ -4,30 +4,17 @@
 
 adc_oneshot_unit_handle_t adc1_handle;
 
-void initLeakageSensor() {
-    gpio_config_t io_conf;
-    io_conf.intr_type = GPIO_INTR_DISABLE;
-    io_conf.mode = GPIO_MODE_INPUT;
-    io_conf.pin_bit_mask = (1ULL << LEAKAGE_SENSOR_PIN);
-    io_conf.pull_down_en = GPIO_PULLDOWN_ENABLE;
-    io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
+void initButton(gpio_isr_t button_isr) {
+    gpio_config_t io_conf = {
+            .pin_bit_mask = (1ULL << BUTTON_PIN),
+            .mode = GPIO_MODE_INPUT,
+            .intr_type = GPIO_INTR_POSEDGE,
+            .pull_up_en = GPIO_PULLUP_ENABLE,
+            .pull_down_en = GPIO_PULLDOWN_DISABLE
+    };
     gpio_config(&io_conf);
-}
-
-void initGPIOs(gpio_isr_t isr) {
-    gpio_config_t io_conf;
-    io_conf.intr_type = GPIO_INTR_HIGH_LEVEL;
-    io_conf.mode = GPIO_MODE_INPUT;
-    io_conf.pin_bit_mask = (1ULL << LEAKAGE_SENSOR_PIN | (1ULL << HALL_SENSOR_PIN) | (1ULL << PIR_SENSOR_PIN));
-    io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
-    io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
-    gpio_config(&io_conf);
-
     gpio_install_isr_service(0);
-
-    gpio_isr_handler_add(LEAKAGE_SENSOR_PIN, isr, (void *) LEAKAGE_SENSOR_PIN);
-    gpio_isr_handler_add(HALL_SENSOR_PIN, isr, (void *) HALL_SENSOR_PIN);
-    gpio_isr_handler_add(PIR_SENSOR_PIN, isr, (void *) PIR_SENSOR_PIN);
+    gpio_isr_handler_add(BUTTON_PIN, button_isr, (void *) BUTTON_PIN);
 }
 
 void initLED() {
@@ -49,17 +36,22 @@ int get_led_level() {
     return gpio_get_level(LED_PIN);
 }
 
-void initButton(gpio_isr_t button_isr) {
-    gpio_config_t io_conf = {
-            .pin_bit_mask = (1ULL << BUTTON_PIN),
-            .mode = GPIO_MODE_INPUT,
-            .intr_type = GPIO_INTR_POSEDGE,
-            .pull_up_en = GPIO_PULLUP_ENABLE,
-            .pull_down_en = GPIO_PULLDOWN_DISABLE
+void initADCs(){
+    /// Init ADCs for CO and Odor Sensors
+    adc_oneshot_unit_init_cfg_t init_config1 = {
+            .unit_id = ADC_UNIT_1,
+            .ulp_mode = ADC_ULP_MODE_DISABLE,
     };
-    gpio_config(&io_conf);
-    gpio_install_isr_service(0);
-    gpio_isr_handler_add(BUTTON_PIN, button_isr, (void *) BUTTON_PIN);
+    ESP_ERROR_CHECK(adc_oneshot_new_unit(&init_config1, &adc1_handle));
+
+    adc_oneshot_chan_cfg_t config = {
+            .bitwidth = ADC_BITWIDTH_DEFAULT,
+            .atten = ADC_ATTEN_DB_0,
+    };
+
+    ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1_handle, CO_SENSOR_ADC_CHANNEL, &config));
+    ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1_handle, ODOR_SENSOR_ADC_CHANNEL, &config));
+
 }
 
 void initI2CDriver() {
@@ -77,97 +69,26 @@ void initI2CDriver() {
     ESP_ERROR_CHECK(i2c_driver_install(I2C_PORT, I2C_MODE_MASTER, 0, 0, 0));
 }
 
-void initAccelerometer() {
-    // Data rate: 400Hz, Low-Power disabled, X,Y,Z Axes enabled
-    uint8_t writeBuf[2] = {LIS3DH_REG_CTRL1, 0x77};
-    i2c_master_write_to_device(I2C_NUM_0, LIS3DH_ADDR, (const uint8_t *) writeBuf, sizeof(writeBuf),
-                               1000 / portTICK_PERIOD_MS);
+/*void initGPIOs(gpio_isr_t isr) {
+    gpio_config_t io_conf;
+    io_conf.intr_type = GPIO_INTR_HIGH_LEVEL;
+    io_conf.mode = GPIO_MODE_INPUT;
+    io_conf.pin_bit_mask = (1ULL << LEAKAGE_SENSOR_PIN | (1ULL << HALL_SENSOR_PIN) | (1ULL << PIR_SENSOR_PIN));
+    io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
+    io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
+    gpio_config(&io_conf);
 
+    gpio_install_isr_service(0);
 
-    writeBuf[0] = LIS3DH_REG_CTRL4;
-    writeBuf[1] = 0x18; // Continuus update, LSB first, 4G-Scale, high-resoultion enabled
-    i2c_master_write_to_device(I2C_NUM_0, LIS3DH_ADDR, (const uint8_t *) writeBuf, sizeof(writeBuf),
-                               1000 / portTICK_PERIOD_MS);
-}
+    gpio_isr_handler_add(LEAKAGE_SENSOR_PIN, isr, (void *) LEAKAGE_SENSOR_PIN);
+    gpio_isr_handler_add(HALL_SENSOR_PIN, isr, (void *) HALL_SENSOR_PIN);
+    gpio_isr_handler_add(PIR_SENSOR_PIN, isr, (void *) PIR_SENSOR_PIN);
+}*/
 
 void initTemperatureSensor() {
     uint8_t writeBuf[3] = {0xBE, 0x08, 0x00};
     i2c_master_write_to_device(I2C_NUM_0, AHT20_ADDR, (const uint8_t *) writeBuf, sizeof(writeBuf),
                                1000 / portTICK_PERIOD_MS);
-}
-
-void initSensors() {
-
-    /// Init ADCs for CO and Odor Sensors
-    adc_oneshot_unit_init_cfg_t init_config1 = {
-            .unit_id = ADC_UNIT_1,
-            .ulp_mode = ADC_ULP_MODE_DISABLE,
-    };
-    ESP_ERROR_CHECK(adc_oneshot_new_unit(&init_config1, &adc1_handle));
-
-    adc_oneshot_chan_cfg_t config = {
-            .bitwidth = ADC_BITWIDTH_DEFAULT,
-            .atten = ADC_ATTEN_DB_0,
-    };
-
-    ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1_handle, CO_SENSOR_ADC_CHANNEL, &config));
-    ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1_handle, ODOR_SENSOR_ADC_CHANNEL, &config));
-
-    /// Init I2C Driver
-    initI2CDriver();
-
-    /// Init I2C for AHT20 (Temperature Sensor)
-    initTemperatureSensor();
-
-    /// Init I2C for LIS3DH (Accelerometer)
-    initAccelerometer();
-}
-
-void configureInterruptAccelerometer() {
-    // IA1 interrupt on INT1 enabled
-    uint8_t writeBuf[2] = {LIS3DH_REG_CTRL3, 0x40};
-    i2c_master_write_to_device(I2C_NUM_0, LIS3DH_ADDR, (const uint8_t *) writeBuf, sizeof(writeBuf),
-                               1000 / portTICK_PERIOD_MS);
-
-    writeBuf[0] = LIS3DH_REG_INT1_CFG;
-    writeBuf[1] = 0x3F; // X,Y,Z High Interrupt enabled
-    i2c_master_write_to_device(I2C_NUM_0, LIS3DH_ADDR, (const uint8_t *) writeBuf, sizeof(writeBuf),
-                               1000 / portTICK_PERIOD_MS);
-
-    writeBuf[0] = LIS3DH_REG_INT1_THS;
-    writeBuf[1] = 0x02; //Threshold at 32 mg / LSB
-    i2c_master_write_to_device(I2C_NUM_0, LIS3DH_ADDR, (const uint8_t *) writeBuf, sizeof(writeBuf),
-                               1000 / portTICK_PERIOD_MS);
-
-    writeBuf[0] = LIS3DH_REG_INT1_DUR;
-    writeBuf[1] = 0xFF;
-    i2c_master_write_to_device(I2C_NUM_0, LIS3DH_ADDR, (const uint8_t *) writeBuf, sizeof(writeBuf),
-                               1000 / portTICK_PERIOD_MS);
-
-}
-
-int readPIRSensor() {
-    return gpio_get_level(PIR_SENSOR_PIN);
-}
-
-int readLeakageSensor() {
-    return gpio_get_level(LEAKAGE_SENSOR_PIN);
-}
-
-int readHallSensor() {
-    return gpio_get_level(HALL_SENSOR_PIN);
-}
-
-uint32_t readCOSensor() {
-    int raw = 0;
-    adc_oneshot_read(adc1_handle, CO_SENSOR_ADC_CHANNEL, &raw);
-    return raw;
-}
-
-uint32_t readOdorSensor() {
-    int raw = 0;
-    adc_oneshot_read(adc1_handle, ODOR_SENSOR_ADC_CHANNEL, &raw);
-    return raw;
 }
 
 float readTemperatureSensor() {
@@ -183,6 +104,43 @@ float readTemperatureSensor() {
     tdata <<= 8;
     tdata |= recBuf[5];
     return ((float) tdata * 200 / 0x100000) - 50;
+}
+
+void initAccelerometer() {
+    // Data rate: 400Hz, Low-Power disabled, X,Y,Z Axes enabled
+    uint8_t writeBuf[2] = {LIS3DH_REG_CTRL1, 0x77};
+    i2c_master_write_to_device(I2C_NUM_0, LIS3DH_ADDR, (const uint8_t *) writeBuf, sizeof(writeBuf),
+                               1000 / portTICK_PERIOD_MS);
+
+
+    writeBuf[0] = LIS3DH_REG_CTRL4;
+    writeBuf[1] = 0x18; // Continuous update, LSB first, 4G-Scale, high-resoultion enabled
+    i2c_master_write_to_device(I2C_NUM_0, LIS3DH_ADDR, (const uint8_t *) writeBuf, sizeof(writeBuf),
+                               1000 / portTICK_PERIOD_MS);
+}
+
+void configureInterruptAccelerometer() {
+    // IA1 interrupt on INT1 enabled
+    uint8_t writeBuf[2] = {LIS3DH_REG_CTRL3, 0x40};
+    i2c_master_write_to_device(I2C_NUM_0, LIS3DH_ADDR, (const uint8_t *) writeBuf, sizeof(writeBuf),
+                               1000 / portTICK_PERIOD_MS);
+
+    writeBuf[0] = LIS3DH_REG_INT1_CFG;
+    writeBuf[1] = 0x3F; // X,Y,Z High Interrupt enabled
+    i2c_master_write_to_device(I2C_NUM_0, LIS3DH_ADDR, (const uint8_t *) writeBuf, sizeof(writeBuf),
+                               1000 / portTICK_PERIOD_MS);
+
+    writeBuf[0] = LIS3DH_REG_INT1_THS;
+    //writeBuf[1] = 0x02; //Threshold at 32 mg / LSB
+    writeBuf[1] = 0x01;
+    i2c_master_write_to_device(I2C_NUM_0, LIS3DH_ADDR, (const uint8_t *) writeBuf, sizeof(writeBuf),
+                               1000 / portTICK_PERIOD_MS);
+
+    writeBuf[0] = LIS3DH_REG_INT1_DUR;
+    writeBuf[1] = 0xFF;
+    i2c_master_write_to_device(I2C_NUM_0, LIS3DH_ADDR, (const uint8_t *) writeBuf, sizeof(writeBuf),
+                               1000 / portTICK_PERIOD_MS);
+
 }
 
 Acceleration readAccelerometer() {
@@ -207,6 +165,60 @@ Acceleration readAccelerometer() {
     acceleration.z = (float) z * sensitivity;
 
     return acceleration;
+}
+
+void initLeakageSensor() {
+    gpio_config_t io_conf;
+    io_conf.intr_type = GPIO_INTR_DISABLE;
+    io_conf.mode = GPIO_MODE_INPUT;
+    io_conf.pin_bit_mask = (1ULL << LEAKAGE_SENSOR_PIN);
+    io_conf.pull_down_en = GPIO_PULLDOWN_ENABLE;
+    io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
+    gpio_config(&io_conf);
+}
+
+int readLeakageSensor() {
+    return gpio_get_level(LEAKAGE_SENSOR_PIN);
+}
+
+void initPIRSensor(){
+    gpio_config_t io_conf;
+    io_conf.intr_type = GPIO_INTR_DISABLE;
+    io_conf.mode = GPIO_MODE_INPUT;
+    io_conf.pin_bit_mask = (1ULL << PIR_SENSOR_PIN);
+    io_conf.pull_down_en = GPIO_PULLDOWN_ENABLE;
+    io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
+    gpio_config(&io_conf);
+}
+
+int readPIRSensor() {
+    return gpio_get_level(PIR_SENSOR_PIN);
+}
+
+void initHallSensor(){
+    gpio_config_t io_conf;
+    io_conf.intr_type = GPIO_INTR_DISABLE;
+    io_conf.mode = GPIO_MODE_INPUT;
+    io_conf.pin_bit_mask = (1ULL << HALL_SENSOR_PIN);
+    io_conf.pull_down_en = GPIO_PULLDOWN_ENABLE;
+    io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
+    gpio_config(&io_conf);
+}
+
+int readHallSensor() {
+    return gpio_get_level(HALL_SENSOR_PIN);
+}
+
+uint32_t readCOSensor() {
+    int raw = 0;
+    adc_oneshot_read(adc1_handle, CO_SENSOR_ADC_CHANNEL, &raw);
+    return raw;
+}
+
+uint32_t readOdorSensor() {
+    int raw = 0;
+    adc_oneshot_read(adc1_handle, ODOR_SENSOR_ADC_CHANNEL, &raw);
+    return raw;
 }
 
 void calibrateOdor(int numValues, float *mean, float *stdDev) {

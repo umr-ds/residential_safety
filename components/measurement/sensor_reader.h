@@ -8,8 +8,6 @@
 
 #define LED_PIN GPIO_NUM_13
 
-
-
 // GPIO12 D27
 #define HALL_SENSOR_PIN GPIO_NUM_27
 
@@ -64,27 +62,35 @@ void set_led_level(uint8_t level);
 
 int get_led_level();
 
+void initADCs();
+
+void initI2CDriver();
+
+void initTemperatureSensor();
+
+float readTemperatureSensor();
+
+void initAccelerometer();
+
+void configureInterruptAccelerometer();
+
+Acceleration readAccelerometer();
+
 void initLeakageSensor();
 
 int readLeakageSensor();
 
-
-void initSensors();
-
-void configureInterruptAccelerometer();
-
+void initPIRSensor();
 
 int readPIRSensor();
+
+void initHallSensor();
 
 int readHallSensor();
 
 uint32_t readCOSensor();
 
 uint32_t readOdorSensor();
-
-float readTemperatureSensor();
-
-Acceleration readAccelerometer();
 
 void calibrateOdor(int numValues, float *mean, float *stdDev);
 
