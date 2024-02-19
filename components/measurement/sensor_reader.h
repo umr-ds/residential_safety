@@ -53,7 +53,6 @@ typedef struct Acceleration {
     float z;
 } Acceleration;
 
-//void initSensors(gpio_isr_t isr);
 
 void initButton(gpio_isr_t button_isr);
 
