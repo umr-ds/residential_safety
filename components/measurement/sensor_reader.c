@@ -50,6 +50,7 @@ void initADCs(){
     };
 
     ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1_handle, CO_SENSOR_ADC_CHANNEL, &config));
+    config.atten = ADC_ATTEN_DB_11;
     ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1_handle, ODOR_SENSOR_ADC_CHANNEL, &config));
 
 }
@@ -89,6 +90,7 @@ float readTemperatureSensor() {
     tdata |= recBuf[5];
     return ((float) tdata * 200 / 0x100000) - 50;
 }
+
 uint8_t lis3dh_read_register(uint8_t reg){
     i2c_cmd_handle_t cmd = i2c_cmd_link_create();
     i2c_master_start(cmd);
