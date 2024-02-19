@@ -6,5 +6,6 @@
 
 #define CO_ADC_CHANNEL 6
 #define ODOR_ADC_CHANNEL 3
+#define BUTTO_PIN 38
 
 #endif //MASTERTHESIS_ULP_CONFIG_H

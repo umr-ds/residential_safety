@@ -16,7 +16,6 @@ const uint8_t mac_addresses[5][6] = {
 
 uint8_t own_mac[6];
 
-
 int mac_addresses_equal(const uint8_t *mac1, const uint8_t *mac2) {
     // Compare each byte of the MAC addresses
     for (int i = 0; i < 6; i++) {
@@ -70,7 +69,7 @@ void initESPNOW(esp_now_recv_cb_t recvCallback, esp_now_send_cb_t sendCallback) 
     ESP_ERROR_CHECK(esp_now_register_recv_cb(recvCallback));
     ESP_ERROR_CHECK(esp_now_register_send_cb(sendCallback));
     esp_read_mac(own_mac, ESP_MAC_WIFI_STA);
-    for (int i = 0; i < NUM_SENSORS; i++) {
+    for (int i = 0; i < sizeof(mac_addresses)/sizeof(mac_addresses[0]); i++) {
         if (mac_addresses_equal(own_mac, mac_addresses[i]) != 1) {
             esp_now_peer_info_t peerInfo;
             peerInfo.channel = 0;
@@ -83,27 +82,13 @@ void initESPNOW(esp_now_recv_cb_t recvCallback, esp_now_send_cb_t sendCallback) 
 
 }
 
-void send_ack_message(uint8_t event_flag, uint8_t dest_node_id) {
-    Message message = {
-            .src_node_id = find_mac_address(own_mac),
-            .message_type = ACK_MESSAGE_TYPE,
-            .data.ack_msg.event_flag = event_flag
-    };
-    esp_now_send(mac_addresses[dest_node_id], (uint8_t *) &message, sizeof(message));
-}
-
 void send_message_to_node(Message message, uint8_t dest_node_id) {
-    esp_now_send(mac_addresses[dest_node_id], (uint8_t *) &message, sizeof(message));
-}
-
-void broadcast_message(Message message) {
-    message.src_node_id = find_mac_address(own_mac);
-    for (int i = 0; i < NUM_SENSORS; i++) {
-        if (mac_addresses_equal(own_mac, mac_addresses[i]) != 1) {
-            esp_now_send(mac_addresses[i], (uint8_t *) &message, sizeof(message));
-        }
+    if(dest_node_id == get_node_id(own_mac)) return;
+    else{
+        esp_now_send(mac_addresses[dest_node_id], (uint8_t *) &message, sizeof(message));
     }
 }
+
 
 
 

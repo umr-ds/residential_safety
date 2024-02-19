@@ -36,6 +36,7 @@
 
 #define LIS3DH_ADDR     0x18
 #define LIS3DH_REG_CTRL1 0x20
+#define LIS3DH_REG_CTRL2 0x21
 #define LIS3DH_REG_CTRL3 0x22
 #define LIS3DH_REG_CTRL4 0x23
 #define LIS3DH_REG_CTRL5 0x24
@@ -70,9 +71,11 @@ void initTemperatureSensor();
 
 float readTemperatureSensor();
 
-void initAccelerometer();
+void lis3dh_init();
 
-void configureInterruptAccelerometer();
+void lis3dh_config_interrupt(uint8_t threshold);
+
+void lis3dh_reset_interrupt();
 
 Acceleration readAccelerometer();
 

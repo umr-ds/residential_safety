@@ -69,22 +69,6 @@ void initI2CDriver() {
     ESP_ERROR_CHECK(i2c_driver_install(I2C_PORT, I2C_MODE_MASTER, 0, 0, 0));
 }
 
-/*void initGPIOs(gpio_isr_t isr) {
-    gpio_config_t io_conf;
-    io_conf.intr_type = GPIO_INTR_HIGH_LEVEL;
-    io_conf.mode = GPIO_MODE_INPUT;
-    io_conf.pin_bit_mask = (1ULL << LEAKAGE_SENSOR_PIN | (1ULL << HALL_SENSOR_PIN) | (1ULL << PIR_SENSOR_PIN));
-    io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
-    io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
-    gpio_config(&io_conf);
-
-    gpio_install_isr_service(0);
-
-    gpio_isr_handler_add(LEAKAGE_SENSOR_PIN, isr, (void *) LEAKAGE_SENSOR_PIN);
-    gpio_isr_handler_add(HALL_SENSOR_PIN, isr, (void *) HALL_SENSOR_PIN);
-    gpio_isr_handler_add(PIR_SENSOR_PIN, isr, (void *) PIR_SENSOR_PIN);
-}*/
-
 void initTemperatureSensor() {
     uint8_t writeBuf[3] = {0xBE, 0x08, 0x00};
     i2c_master_write_to_device(I2C_NUM_0, AHT20_ADDR, (const uint8_t *) writeBuf, sizeof(writeBuf),
@@ -105,42 +89,80 @@ float readTemperatureSensor() {
     tdata |= recBuf[5];
     return ((float) tdata * 200 / 0x100000) - 50;
 }
+uint8_t lis3dh_read_register(uint8_t reg){
+    i2c_cmd_handle_t cmd = i2c_cmd_link_create();
+    i2c_master_start(cmd);
+    i2c_master_write_byte(cmd, (LIS3DH_ADDR << 1) | I2C_MASTER_WRITE, true);
+    i2c_master_write_byte(cmd, reg, true);
+    i2c_master_stop(cmd);
+    i2c_master_cmd_begin(I2C_NUM_0, cmd, 1000 / portTICK_PERIOD_MS);
+    i2c_cmd_link_delete(cmd);
 
-void initAccelerometer() {
-    // Data rate: 400Hz, Low-Power disabled, X,Y,Z Axes enabled
-    uint8_t writeBuf[2] = {LIS3DH_REG_CTRL1, 0x77};
+    vTaskDelay(1);  // Add a small delay to ensure data is ready
+
+    cmd = i2c_cmd_link_create();
+    i2c_master_start(cmd);
+    i2c_master_write_byte(cmd, (LIS3DH_ADDR << 1) | I2C_MASTER_READ, true);
+    uint8_t value;
+    i2c_master_read_byte(cmd, &value, I2C_MASTER_NACK);
+    i2c_master_stop(cmd);
+    i2c_master_cmd_begin(I2C_NUM_0, cmd, 1000 / portTICK_PERIOD_MS);
+    i2c_cmd_link_delete(cmd);
+
+    return value;
+}
+
+void lis3dh_init() {
+    // Data rate: 100Hz, Low-Power disabled, X,Y,Z Axes enabled
+    uint8_t writeBuf[2] = {LIS3DH_REG_CTRL1, 0x57};
     i2c_master_write_to_device(I2C_NUM_0, LIS3DH_ADDR, (const uint8_t *) writeBuf, sizeof(writeBuf),
                                1000 / portTICK_PERIOD_MS);
 
 
     writeBuf[0] = LIS3DH_REG_CTRL4;
-    writeBuf[1] = 0x18; // Continuous update, LSB first, 4G-Scale, high-resoultion enabled
+    writeBuf[1] = 0x18; // Continuous update, Little Endian, 4G-Scale, high-resoultion enabled
     i2c_master_write_to_device(I2C_NUM_0, LIS3DH_ADDR, (const uint8_t *) writeBuf, sizeof(writeBuf),
                                1000 / portTICK_PERIOD_MS);
 }
 
-void configureInterruptAccelerometer() {
-    // IA1 interrupt on INT1 enabled
-    uint8_t writeBuf[2] = {LIS3DH_REG_CTRL3, 0x40};
+void lis3dh_config_interrupt(uint8_t threshold){
+
+    uint8_t writeBuf[2];
+    writeBuf[0] = LIS3DH_REG_CTRL2;
+    writeBuf[1] = 0x09; // High pass filter normal mode (reset by reading REF register), enabled for INT1
     i2c_master_write_to_device(I2C_NUM_0, LIS3DH_ADDR, (const uint8_t *) writeBuf, sizeof(writeBuf),
                                1000 / portTICK_PERIOD_MS);
 
-    writeBuf[0] = LIS3DH_REG_INT1_CFG;
-    writeBuf[1] = 0x3F; // X,Y,Z High Interrupt enabled
+    writeBuf[0] = LIS3DH_REG_CTRL3;
+    writeBuf[1] = 0x40; //  INT1 enabled
+    i2c_master_write_to_device(I2C_NUM_0, LIS3DH_ADDR, (const uint8_t *) writeBuf, sizeof(writeBuf),
+                               1000 / portTICK_PERIOD_MS);
+
+    writeBuf[0] = LIS3DH_REG_CTRL5;
+    writeBuf[1] = 0x08; // Latch interrupt enabled
     i2c_master_write_to_device(I2C_NUM_0, LIS3DH_ADDR, (const uint8_t *) writeBuf, sizeof(writeBuf),
                                1000 / portTICK_PERIOD_MS);
 
     writeBuf[0] = LIS3DH_REG_INT1_THS;
-    //writeBuf[1] = 0x02; //Threshold at 32 mg / LSB
-    writeBuf[1] = 0x01;
+    writeBuf[1] = threshold; // 1LSB at 4G-Scale = 32mg
     i2c_master_write_to_device(I2C_NUM_0, LIS3DH_ADDR, (const uint8_t *) writeBuf, sizeof(writeBuf),
                                1000 / portTICK_PERIOD_MS);
 
     writeBuf[0] = LIS3DH_REG_INT1_DUR;
-    writeBuf[1] = 0xFF;
+    writeBuf[1] = 0x00;
     i2c_master_write_to_device(I2C_NUM_0, LIS3DH_ADDR, (const uint8_t *) writeBuf, sizeof(writeBuf),
                                1000 / portTICK_PERIOD_MS);
 
+    writeBuf[0] = LIS3DH_REG_INT1_CFG;
+    writeBuf[1] = 0x2A;
+    i2c_master_write_to_device(I2C_NUM_0, LIS3DH_ADDR, (const uint8_t *) writeBuf, sizeof(writeBuf),
+                               1000 / portTICK_PERIOD_MS);
+}
+
+void lis3dh_reset_interrupt(){
+    lis3dh_read_register(0x21); //read register to reset high-pass filter
+    lis3dh_read_register(0x26); //read register to set reference acceleration
+    lis3dh_read_register(0x31);
 }
 
 Acceleration readAccelerometer() {

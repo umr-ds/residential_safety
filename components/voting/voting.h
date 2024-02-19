@@ -12,27 +12,20 @@
 
 #define NUM_SAMPLE_VALUES 500
 
-float calculate_water_leakage_vote();
-
-int calculate_gas_leakage_vote();
-
-int calculate_intrusion_vote();
-
-int calculate_fire_vote();
-
-int calculate_shock_vote();
 
 void init_votes();
 
 void set_vote(int index, float value);
 
-Message start_voting(int event_flag);
+float calculate_vote(int event_flag);
 
 void set_sensor_voted(int index);
 
-uint8_t check_votes();
+bool get_sensor_voted(int index);
 
-uint8_t calculate_decision(int event_flag);
+bool check_votes(const bool* nodes_available, int num_nodes_available);
+
+uint8_t calculate_decision(int event_flag, int num_nodes_available);
 
 #endif //MASTERTHESIS_VOTING_H
 

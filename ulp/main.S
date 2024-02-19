@@ -26,6 +26,7 @@
    and C macros may be used in these files
  */
 #include "soc/rtc_cntl_reg.h"
+#include "soc/rtc_io_reg.h"
 #include "soc/soc_ulp.h"
 #include "ulp_config.h"
 
@@ -66,12 +67,21 @@ wakeup_flag_co:
 wakeup_flag_odor:
     .long 0
 
+    .global wakeup_flag_button
+wakeup_flag_button:
+    .long 0
+
     .text
     .global entry
 entry:
 	/* do measurements using ADC */
 	/* r0 will be used as accumulator */
 	move r0, 0
+
+    READ_RTC_REG (RTC_GPIO_IN_REG, RTC_GPIO_IN_NEXT_S, 16)
+    and R1, R0, 1<<2 // mask out the GPIO_NUM_38 pin
+    jump wakeup_button, eq  // wakeup if it's low
+
 	/* initialize the loop counter */
 	stage_rst
 measure_co:
@@ -134,6 +144,20 @@ wake_up_odor:
 
     /* Set flag for Channel 'odor' wake-up */
     move r3, wakeup_flag_odor
+    move r2, 1
+    st r2, r3, 0
+    /* Wake up the SoC, end program */
+    wake
+    WRITE_RTC_FIELD(RTC_CNTL_STATE0_REG, RTC_CNTL_ULP_CP_SLP_TIMER_EN, 0)
+    halt
+
+wakeup_button:
+    /* Check if the system can be woken up */
+    READ_RTC_FIELD(RTC_CNTL_LOW_POWER_ST_REG, RTC_CNTL_RDY_FOR_WAKEUP)
+    and r0, r0, 1
+    jump exit, eq
+
+    move r3, wakeup_flag_button
     move r2, 1
     st r2, r3, 0
     /* Wake up the SoC, end program */
