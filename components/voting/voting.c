@@ -16,22 +16,29 @@ float calculate_water_leakage_vote() {
     return (float) readLeakageSensor() * leakage_weight * node_weight_water_leakage;
 }
 
-int calculate_gas_leakage_vote() {
+float calculate_gas_leakage_vote() {
 
     return odor_weight + co_weight;
 }
 
-int calculate_intrusion_vote() {
+float calculate_intrusion_vote() {
 
     return pir_weight + hall_weight;
 }
 
-int calculate_fire_vote() {
-
+float calculate_fire_vote() {
+    initADCs();
+    initTemperatureSensor();
+    float meanCO = 0.0;
+    uint32_t temp = 0.0;
+    for(int i = 0; i < NUM_SAMPLE_VALUES; i++){
+        temp += readCOSensor();
+    }
+    meanCO = (float)(temp/NUM_SAMPLE_VALUES);
     return co_weight + temperature_weight;
 }
 
-int calculate_shock_vote() {
+float calculate_shock_vote() {
 
     return accel_weight;
 }
@@ -64,6 +71,10 @@ bool get_sensor_voted(int index){
 void set_vote(int index, float value) {
     printf("Setting vote at index %i to value: %f\n", index, value);
     votes[index] = value;
+}
+
+float get_vote(int index){
+    return votes[index];
 }
 
 bool check_votes(const bool* nodes_available, int num_nodes_available) {

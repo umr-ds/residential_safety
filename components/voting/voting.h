@@ -17,6 +17,8 @@ void init_votes();
 
 void set_vote(int index, float value);
 
+float get_vote(int index);
+
 float calculate_vote(int event_flag);
 
 void set_sensor_voted(int index);
