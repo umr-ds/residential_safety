@@ -4,33 +4,41 @@
 #include <esp_now.h>
 #include "stdint.h"
 
-#define MAX_NUM_SENSORS 3
+#define MAX_NUM_SENSORS 5
 
-#define CHECK_NODES_MSG 1
-#define VOTING_REQUEST_MESSAGE_TYPE 2
-#define VOTING_ANSWER_MESSAGE_TYPE 3
-#define VOTING_RESULT_MESSAGE_TYPE 4
-#define ACK_MESSAGE_TYPE 5
-
+#define VOTING_REQUEST_MESSAGE_TYPE 1
+#define VOTING_ANSWER_MESSAGE_TYPE 2
+#define VOTING_RESULT_MESSAGE_TYPE 3
+#define ALARM_MODE_MESSAGE_TYPE 4
 
 
 
 extern const uint8_t mac_addresses[5][6];
 
+typedef struct event {
+    uint8_t event_flag;
+    struct {
+        bool odor_flag;
+        bool co_flag;
+    } co_or_odor_event_flag;
+} event;
+
 typedef struct Message {
     int message_type;
-    uint8_t src_node_id;
     union {
         struct {
-            int event_flag;
+            event event;
         } voting_request_msg;
         struct {
             int event_flag;
             float vote;
+            float vote_weight;
         } voting_answer_msg;
         struct {
             int event_flag;
-            uint8_t decision;
+            bool decision;
+            float vote;
+            float necessary_majority;
         } voting_result_msg;
         struct {
             int message_flag;

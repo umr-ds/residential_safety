@@ -7,7 +7,6 @@
 #ifndef MASTERTHESIS_WEIGHTS_H
 #define MASTERTHESIS_WEIGHTS_H
 
-RTC_DATA_ATTR float leakage_weight = 1.0;
 RTC_DATA_ATTR float pir_weight = 1.0;
 RTC_DATA_ATTR float hall_weight = 1.0;
 RTC_DATA_ATTR float co_weight = 1.0;

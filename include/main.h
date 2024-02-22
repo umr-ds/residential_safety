@@ -10,16 +10,16 @@
 #define MESSAGE_WAITING_INTERVAL (5*MICROSEC_TO_SEC)
 #define DEEPSLEEP_INTERVAL (10*MICROSEC_TO_SEC)
 #define VOTING_TIMEOUT_INTERVAL (DEEPSLEEP_INTERVAL+MESSAGE_WAITING_INTERVAL)
-#define CALIBRATION_INTERVAL (2*60*MICROSEC_TO_SEC)
+#define CALIBRATION_INTERVAL (10*MICROSEC_TO_SEC)
 
 bool nodes_available[MAX_NUM_SENSORS] = {false};
 
-RTC_DATA_ATTR float mean_odor = 0;
-RTC_DATA_ATTR float stdDev_odor = 0;
-RTC_DATA_ATTR float mean_co = 0;
-RTC_DATA_ATTR float stdDev_co = 0;
+RTC_DATA_ATTR uint32_t mean_odor = 0;
+RTC_DATA_ATTR uint32_t mean_co = 0;
 RTC_DATA_ATTR Acceleration mean_accel;
-RTC_DATA_ATTR Acceleration stdDev_accel;
+RTC_DATA_ATTR float current_temp = 0;
+
+
 
 
 #endif //MASTERTHESIS_MAIN_H

@@ -79,7 +79,7 @@ entry:
 	move r0, 0
 
     READ_RTC_REG (RTC_GPIO_IN_REG, RTC_GPIO_IN_NEXT_S, 16)
-    and R1, R0, 1<<2 // mask out the GPIO_NUM_38 pin
+    and R1, R0, 1<<2 // mask out the GPIO_NUM_38 pin (RTC2)
     jump wakeup_button, eq  // wakeup if it's low
 
 	/* initialize the loop counter */

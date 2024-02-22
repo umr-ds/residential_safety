@@ -8,7 +8,7 @@
 
 #define LED_PIN GPIO_NUM_13
 
-// GPIO12 D27
+// GPIO27 D27
 #define HALL_SENSOR_PIN GPIO_NUM_27
 
 // GPIO34 A2
@@ -47,6 +47,7 @@
 
 extern adc_oneshot_unit_handle_t adc1_handle;
 
+
 typedef struct Acceleration {
     float x;
     float y;
@@ -69,6 +70,8 @@ void initI2CDriver();
 void initTemperatureSensor();
 
 float readTemperatureSensor();
+
+uint8_t lis3dh_read_register(uint8_t reg);
 
 void lis3dh_init();
 
@@ -94,9 +97,9 @@ uint32_t readCOSensor();
 
 uint32_t readOdorSensor();
 
-void calibrateOdor(int numValues, float *mean, float *stdDev);
+uint32_t calculate_odor_mean(int numValues);
 
-void calibrateCO(int numValues, float *mean, float *stdDev);
+uint32_t calculate_co_mean(int numValues);
 
 void calibrateAccelerometer(int numValues, Acceleration *mean, Acceleration *stdDev);
 

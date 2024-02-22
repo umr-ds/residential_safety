@@ -14,19 +14,17 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6fb98cdb-da65-4f4a-92d4-1681183f1b03" name="Changes" comment="refactor: provided better structure">
+    <list default="true" id="6fb98cdb-da65-4f4a-92d4-1681183f1b03" name="Changes" comment="feat: add fire/gas/acceleration scenarios. Consensus is now reached decentral">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/communication/communication.c" beforeDir="false" afterPath="$PROJECT_DIR$/components/communication/communication.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/communication/communication.h" beforeDir="false" afterPath="$PROJECT_DIR$/components/communication/communication.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/measurement/sensor_reader.c" beforeDir="false" afterPath="$PROJECT_DIR$/components/measurement/sensor_reader.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/measurement/sensor_reader.h" beforeDir="false" afterPath="$PROJECT_DIR$/components/measurement/sensor_reader.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/voting/voting.c" beforeDir="false" afterPath="$PROJECT_DIR$/components/voting/voting.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/voting/voting.h" beforeDir="false" afterPath="$PROJECT_DIR$/components/voting/voting.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/include/main.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/main.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sdkconfig.adafruit_feather_esp32_v2" beforeDir="false" afterPath="$PROJECT_DIR$/sdkconfig.adafruit_feather_esp32_v2" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/weights.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/weights.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main.c" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ulp/main.S" beforeDir="false" afterPath="$PROJECT_DIR$/ulp/main.S" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ulp/ulp_config.h" beforeDir="false" afterPath="$PROJECT_DIR$/ulp/ulp_config.h" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -228,6 +226,18 @@
     <configuration name="PlatformIO" type="platformio" factoryName="PlatformIO Debug" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="masterthesis" TARGET_NAME="PlatformIO" CONFIG_NAME="PlatformIO">
       <method v="2" />
     </configuration>
+    <configuration name="PlatformIO" type="platformio" factoryName="PlatformIO Debug" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="masterthesis" TARGET_NAME="PlatformIO" CONFIG_NAME="PlatformIO">
+      <method v="2" />
+    </configuration>
+    <configuration name="PlatformIO" type="platformio" factoryName="PlatformIO Debug" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="masterthesis" TARGET_NAME="PlatformIO" CONFIG_NAME="PlatformIO">
+      <method v="2" />
+    </configuration>
+    <configuration name="PlatformIO" type="platformio" factoryName="PlatformIO Debug" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="masterthesis" TARGET_NAME="PlatformIO" CONFIG_NAME="PlatformIO">
+      <method v="2" />
+    </configuration>
+    <configuration name="PlatformIO" type="platformio" factoryName="PlatformIO Debug" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="masterthesis" TARGET_NAME="PlatformIO" CONFIG_NAME="PlatformIO">
+      <method v="2" />
+    </configuration>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
@@ -285,7 +295,11 @@
       <workItem from="1708095942283" duration="605000" />
       <workItem from="1708161097882" duration="2189000" />
       <workItem from="1708263687874" duration="1501000" />
-      <workItem from="1708330942594" duration="16127000" />
+      <workItem from="1708330942594" duration="26286000" />
+      <workItem from="1708425927124" duration="6623000" />
+      <workItem from="1708511291203" duration="24277000" />
+      <workItem from="1708588359850" duration="14315000" />
+      <workItem from="1708606662490" duration="15440000" />
     </task>
     <task id="LOCAL-00001" summary="refactor: undo last commit">
       <option name="closed" value="true" />
@@ -551,18 +565,53 @@
       <option name="project" value="LOCAL" />
       <updated>1706640873312</updated>
     </task>
-    <option name="localTasksCounter" value="34" />
+    <task id="LOCAL-00034" summary="feat: add working voting algorithm for water leakage and acceleration">
+      <option name="closed" value="true" />
+      <created>1708355001360</created>
+      <option name="number" value="00034" />
+      <option name="presentableId" value="LOCAL-00034" />
+      <option name="project" value="LOCAL" />
+      <updated>1708355001360</updated>
+    </task>
+    <task id="LOCAL-00035" summary="feat: add fire voting, changed return type of some functions">
+      <option name="closed" value="true" />
+      <created>1708367183345</created>
+      <option name="number" value="00035" />
+      <option name="presentableId" value="LOCAL-00035" />
+      <option name="project" value="LOCAL" />
+      <updated>1708367183345</updated>
+    </task>
+    <task id="LOCAL-00036" summary="refactor: removed unused or outcommented methods">
+      <option name="closed" value="true" />
+      <created>1708367201681</created>
+      <option name="number" value="00036" />
+      <option name="presentableId" value="LOCAL-00036" />
+      <option name="project" value="LOCAL" />
+      <updated>1708367201681</updated>
+    </task>
+    <task id="LOCAL-00037" summary="fix: add attenuation to Odor ADC since some sensors show strange behaviour">
+      <option name="closed" value="true" />
+      <created>1708367239016</created>
+      <option name="number" value="00037" />
+      <option name="presentableId" value="LOCAL-00037" />
+      <option name="project" value="LOCAL" />
+      <updated>1708367239016</updated>
+    </task>
+    <task id="LOCAL-00038" summary="feat: add fire/gas/acceleration scenarios. Consensus is now reached decentral">
+      <option name="closed" value="true" />
+      <created>1708367282699</created>
+      <option name="number" value="00038" />
+      <option name="presentableId" value="LOCAL-00038" />
+      <option name="project" value="LOCAL" />
+      <updated>1708367282699</updated>
+    </task>
+    <option name="localTasksCounter" value="39" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="feat: add ISR" />
-    <MESSAGE value="refactor: callbacks and isr are now passed as argument to init methods" />
-    <MESSAGE value="feat: add flags" />
-    <MESSAGE value="feat: add basic logic for calibration/sensor reading/event handling" />
-    <MESSAGE value="feat: enable Power Mode" />
     <MESSAGE value="feat: add ulp assembly files for deepsleep wakeup" />
     <MESSAGE value="fix: moved Hall Sensor to PIN 27 because of issues with pin 12 at deep sleep" />
     <MESSAGE value="refactor: removed deinitSensors method" />
@@ -583,6 +632,11 @@
     <MESSAGE value="style: reformat code" />
     <MESSAGE value="feat: add more cases" />
     <MESSAGE value="refactor: provided better structure" />
-    <option name="LAST_COMMIT_MESSAGE" value="refactor: provided better structure" />
+    <MESSAGE value="feat: add working voting algorithm for water leakage and acceleration" />
+    <MESSAGE value="feat: add fire voting, changed return type of some functions" />
+    <MESSAGE value="refactor: removed unused or outcommented methods" />
+    <MESSAGE value="fix: add attenuation to Odor ADC since some sensors show strange behaviour" />
+    <MESSAGE value="feat: add fire/gas/acceleration scenarios. Consensus is now reached decentral" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat: add fire/gas/acceleration scenarios. Consensus is now reached decentral" />
   </component>
 </project>

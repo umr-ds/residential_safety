@@ -6,12 +6,12 @@
 
 #define WATER_LEAKAGE_FLAG 1
 #define INTRUSION_FLAG 2
-#define FIRE_FLAG 3
+#define FIRE_OR_GAS_FLAG 3
 #define SHOCK_FLAG 4
-#define GAS_LEAKAGE_FLAG 5
 
 #define NUM_SAMPLE_VALUES 500
 
+typedef struct event event;
 
 void init_votes();
 
@@ -19,15 +19,21 @@ void set_vote(int index, float value);
 
 float get_vote(int index);
 
-float calculate_vote(int event_flag);
+float get_own_node_weight(int event_flag);
+
+float get_node_weight(int index);
+
+void set_node_weight(int index, float value);
+
+float calculate_vote(event event);
 
 void set_sensor_voted(int index);
 
 bool get_sensor_voted(int index);
 
-bool check_votes(const bool* nodes_available, int num_nodes_available);
+bool check_all_nodes_voted();
 
-uint8_t calculate_decision(int event_flag, int num_nodes_available);
+bool calculate_decision(int event_flag, float* final_vote, float* neccessary_majority);
 
 #endif //MASTERTHESIS_VOTING_H
 

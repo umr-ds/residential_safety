@@ -8,7 +8,7 @@ void initButton(gpio_isr_t button_isr) {
     gpio_config_t io_conf = {
             .pin_bit_mask = (1ULL << BUTTON_PIN),
             .mode = GPIO_MODE_INPUT,
-            .intr_type = GPIO_INTR_POSEDGE,
+            .intr_type = GPIO_INTR_LOW_LEVEL,
             .pull_up_en = GPIO_PULLUP_ENABLE,
             .pull_down_en = GPIO_PULLDOWN_DISABLE
     };
@@ -26,6 +26,7 @@ void initLED() {
             .pull_down_en = GPIO_PULLDOWN_ENABLE,
     };
     gpio_config(&io_conf);
+
 }
 
 void set_led_level(uint8_t level) {
@@ -45,12 +46,12 @@ void initADCs(){
     ESP_ERROR_CHECK(adc_oneshot_new_unit(&init_config1, &adc1_handle));
 
     adc_oneshot_chan_cfg_t config = {
-            .bitwidth = ADC_BITWIDTH_DEFAULT,
-            .atten = ADC_ATTEN_DB_0,
+            .bitwidth = ADC_BITWIDTH_12,
+            .atten = ADC_ATTEN_DB_2_5,
     };
 
     ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1_handle, CO_SENSOR_ADC_CHANNEL, &config));
-    config.atten = ADC_ATTEN_DB_11;
+    config.atten = ADC_ATTEN_DB_2_5;
     ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1_handle, ODOR_SENSOR_ADC_CHANNEL, &config));
 
 }
@@ -128,7 +129,6 @@ void lis3dh_init() {
 }
 
 void lis3dh_config_interrupt(uint8_t threshold){
-
     uint8_t writeBuf[2];
     writeBuf[0] = LIS3DH_REG_CTRL2;
     writeBuf[1] = 0x09; // High pass filter normal mode (reset by reading REF register), enabled for INT1
@@ -155,6 +155,8 @@ void lis3dh_config_interrupt(uint8_t threshold){
     i2c_master_write_to_device(I2C_NUM_0, LIS3DH_ADDR, (const uint8_t *) writeBuf, sizeof(writeBuf),
                                1000 / portTICK_PERIOD_MS);
 
+    lis3dh_read_register(0x26); //read register to set reference acceleration
+
     writeBuf[0] = LIS3DH_REG_INT1_CFG;
     writeBuf[1] = 0x2A;
     i2c_master_write_to_device(I2C_NUM_0, LIS3DH_ADDR, (const uint8_t *) writeBuf, sizeof(writeBuf),
@@ -162,9 +164,11 @@ void lis3dh_config_interrupt(uint8_t threshold){
 }
 
 void lis3dh_reset_interrupt(){
-    lis3dh_read_register(0x21); //read register to reset high-pass filter
-    lis3dh_read_register(0x26); //read register to set reference acceleration
-    lis3dh_read_register(0x31);
+    uint8_t writeBuf[2];
+    writeBuf[0] = LIS3DH_REG_INT1_CFG;
+    writeBuf[1] = 0x2A;
+    i2c_master_write_to_device(I2C_NUM_0, LIS3DH_ADDR, (const uint8_t *) writeBuf, sizeof(writeBuf),
+                               1000 / portTICK_PERIOD_MS);
 }
 
 Acceleration readAccelerometer() {
@@ -245,34 +249,25 @@ uint32_t readOdorSensor() {
     return raw;
 }
 
-void calibrateOdor(int numValues, float *mean, float *stdDev) {
+uint32_t calculate_odor_mean(int numValues) {
     uint32_t sensorValues[numValues];
-
+    uint32_t mean = 0;
     for (int i = 0; i < numValues; i++) {
         sensorValues[i] = readOdorSensor();
-        *mean += sensorValues[i];
+        mean += sensorValues[i];
     }
-    *mean = *mean / numValues;
 
-    for (int i = 0; i < numValues; i++) {
-        *stdDev += pow(sensorValues[i] - *mean, 2);
-    }
-    *stdDev = sqrt(*stdDev / numValues);
+    return (uint32_t )(mean/numValues);
 }
 
-void calibrateCO(int numValues, float *mean, float *stdDev) {
+uint32_t calculate_co_mean(int numValues) {
     uint32_t sensorValues[numValues];
-
+    uint32_t mean = 0;
     for (int i = 0; i < numValues; i++) {
         sensorValues[i] = readCOSensor();
-        *mean += sensorValues[i];
+        mean += sensorValues[i];
     }
-    *mean = *mean / numValues;
-
-    for (int i = 0; i < numValues; i++) {
-        *stdDev += pow(sensorValues[i] - *mean, 2);
-    }
-    *stdDev = sqrt(*stdDev / numValues);
+    return (uint32_t )(mean / numValues);
 }
 
 void calibrateAccelerometer(int numValues, Acceleration *mean, Acceleration *stdDev) {

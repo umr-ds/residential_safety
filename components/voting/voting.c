@@ -1,8 +1,10 @@
 #include "voting.h"
 #include "weights.h"
+#include "communication.h"
 
 float votes[MAX_NUM_SENSORS];
 bool voted_sensors[MAX_NUM_SENSORS];
+float node_weights[MAX_NUM_SENSORS];
 
 void init_votes() {
     for (int i = 0; i < MAX_NUM_SENSORS; i++) {
@@ -13,12 +15,7 @@ void init_votes() {
 
 float calculate_water_leakage_vote() {
     initLeakageSensor();
-    return (float) readLeakageSensor() * leakage_weight * node_weight_water_leakage;
-}
-
-float calculate_gas_leakage_vote() {
-
-    return odor_weight + co_weight;
+    return (float) readLeakageSensor();
 }
 
 float calculate_intrusion_vote() {
@@ -26,41 +23,36 @@ float calculate_intrusion_vote() {
     return pir_weight + hall_weight;
 }
 
-float calculate_fire_vote() {
-    initADCs();
-    initTemperatureSensor();
-    float meanCO = 0.0;
-    uint32_t temp = 0.0;
-    for(int i = 0; i < NUM_SAMPLE_VALUES; i++){
-        temp += readCOSensor();
-    }
-    meanCO = (float)(temp/NUM_SAMPLE_VALUES);
-    return co_weight + temperature_weight;
-}
-
 float calculate_shock_vote() {
-
-    return accel_weight;
+    uint8_t regValue = lis3dh_read_register(0x31);
+    lis3dh_reset_interrupt();
+    if((regValue & 0x40) == 0x40) {
+        return accel_weight;
+    } else {
+        return 0.0;
+    }
 }
 
-float calculate_vote(int event_flag) {
+float calculate_vote(event event) {
     float vote = 0.0;
-    switch (event_flag) {
+    switch (event.event_flag) {
         case WATER_LEAKAGE_FLAG:
             return calculate_water_leakage_vote();
         case SHOCK_FLAG:
             return calculate_shock_vote();
-        case FIRE_FLAG:
-            return calculate_fire_vote();
-        case GAS_LEAKAGE_FLAG:
-            return calculate_gas_leakage_vote();
+        case FIRE_OR_GAS_FLAG:
+            return 0;
+            // look for the other gas sensor and temperature. If temperature is rising, its fire, otherwise its gas
+            //if(event.co_or_odor_event_flag.co_flag == true  event.co_or_odor_event_flag.co_flag)
+            return vote;
+        case INTRUSION_FLAG:
+            return calculate_intrusion_vote();
         default:
             return vote;
     }
 }
 
 void set_sensor_voted(int index) {
-    printf("Setting sensor voted at index %i to 1\n", index);
     voted_sensors[index] = true;
 }
 
@@ -69,7 +61,6 @@ bool get_sensor_voted(int index){
 }
 
 void set_vote(int index, float value) {
-    printf("Setting vote at index %i to value: %f\n", index, value);
     votes[index] = value;
 }
 
@@ -77,33 +68,60 @@ float get_vote(int index){
     return votes[index];
 }
 
-bool check_votes(const bool* nodes_available, int num_nodes_available) {
+float get_own_node_weight(int event_flag){
+    switch (event_flag) {
+        case WATER_LEAKAGE_FLAG:
+            return node_weight_water_leakage;
+        case FIRE_OR_GAS_FLAG:
+            return node_weight_gas_leakage;
+        case SHOCK_FLAG:
+            return node_weight_shock;
+        case INTRUSION_FLAG:
+            return node_weight_shock;
+        default:
+            return 0.0;
+    }
+}
+
+void set_node_weight(int index, float value){
+    node_weights[index] = value;
+}
+
+float get_node_weight(int index){
+    return node_weights[index];
+}
+
+bool check_all_nodes_voted(){
+    for(int i = 0; i < MAX_NUM_SENSORS; i++){
+        if(voted_sensors[i] == false) return false;
+    }
+    return true;
+}
+
+bool calculate_decision(int event_flag, float* final_vote, float* required_majority) {
+    float sum_votes = 0;
+    float majority;
+    float normalized_majority = 0;
     int cnt = 0;
     for (int i = 0; i < MAX_NUM_SENSORS; i++) {
-        // Skip sensors that are not available
-        if(nodes_available[i] == false){
-            printf("Skipping node %i since it is not available\n", i);
-            continue;
-        }
-        if (voted_sensors[i] == true){
-            printf("Node %i has voted, incrementing counter\n", i);
+        if(voted_sensors[i] == true){
             cnt++;
         }
     }
-    if(cnt == num_nodes_available) return true;
-    else return false;
-}
-
-uint8_t calculate_decision(int event_flag, int num_nodes_available) {
-    float sum_votes = 0;
-    for (int i = 0; i < MAX_NUM_SENSORS; i++) {
-        sum_votes += votes[i];
+    for(int i = 0; i < MAX_NUM_SENSORS; i++) {
+        float normalized_vote = (node_weights[i]/MAX_NUM_SENSORS)*cnt;
+        sum_votes += normalized_vote * votes[i];
+        printf("Normalized vote of node with weight %f is: %i is %f. Original vote was: %f\n", node_weights[i], i, normalized_vote, votes[i]);
     }
+    normalized_majority = (float)(1.0/MAX_NUM_SENSORS) * cnt;
+    printf("Noramlized majority is %f\n", normalized_majority);
+    *final_vote = sum_votes;
+    *required_majority = normalized_majority; //majority;
     printf("Sum of votes is: %f\n", sum_votes);
-    printf("Necessary majority: %f\n", num_nodes_available/2.0);
+    printf("Necessary majority: %f\n", normalized_majority);
     switch (event_flag) {
         case WATER_LEAKAGE_FLAG:
-            if (sum_votes >=  num_nodes_available / 2.0) {
+            if (sum_votes >=  normalized_majority && sum_votes > 0.0) {
                 printf("Accepting\n");
                 return 1;
             } else {
@@ -111,23 +129,23 @@ uint8_t calculate_decision(int event_flag, int num_nodes_available) {
                 return 0;
             }
         case SHOCK_FLAG:
-            if (sum_votes >= num_nodes_available / 2) {
+            if (sum_votes >=  *required_majority && sum_votes > 0.0) {
                 printf("Accepting\n");
                 return 1;
             } else {
                 printf("No majority reached\n");
                 return 0;
             }
-        case FIRE_FLAG:
-            if (sum_votes >= num_nodes_available / 2) {
+        case FIRE_OR_GAS_FLAG:
+            if (sum_votes >= *required_majority && sum_votes > 0.0) {
                 printf("Accepting\n");
                 return 1;
             } else {
                 printf("No majority reached\n");
                 return 0;
             }
-        case GAS_LEAKAGE_FLAG:
-            if (sum_votes >= num_nodes_available / 2) {
+        case INTRUSION_FLAG:
+            if(sum_votes >= *required_majority && sum_votes > 0.0){
                 printf("Accepting\n");
                 return 1;
             } else {
