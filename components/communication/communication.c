@@ -64,12 +64,11 @@ void initWifi() {
 
 }
 
-void initESPNOW(esp_now_recv_cb_t recvCallback, esp_now_send_cb_t sendCallback) {
+void initESPNOW(esp_now_recv_cb_t recvCallback) {
     ESP_ERROR_CHECK(esp_now_init());
     ESP_ERROR_CHECK(esp_now_register_recv_cb(recvCallback));
-    ESP_ERROR_CHECK(esp_now_register_send_cb(sendCallback));
     esp_read_mac(own_mac, ESP_MAC_WIFI_STA);
-    for (int i = 0; i < sizeof(mac_addresses)/sizeof(mac_addresses[0]); i++) {
+    for (int i = 0; i < sizeof(mac_addresses) / sizeof(mac_addresses[0]); i++) {
         if (mac_addresses_equal(own_mac, mac_addresses[i]) != 1) {
             esp_now_peer_info_t peerInfo;
             peerInfo.channel = 0;
@@ -83,8 +82,8 @@ void initESPNOW(esp_now_recv_cb_t recvCallback, esp_now_send_cb_t sendCallback) 
 }
 
 void send_message_to_node(Message message, uint8_t dest_node_id) {
-    if(dest_node_id == get_node_id(own_mac)) return;
-    else{
+    if (dest_node_id == get_node_id(own_mac)) return;
+    else {
         esp_now_send(mac_addresses[dest_node_id], (uint8_t *) &message, sizeof(message));
     }
 }

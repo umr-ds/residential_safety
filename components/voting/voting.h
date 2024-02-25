@@ -33,7 +33,7 @@ bool get_sensor_voted(int index);
 
 bool check_all_nodes_voted();
 
-bool calculate_decision(int event_flag, float* final_vote, float* neccessary_majority);
+bool calculate_decision(int event_flag, float *final_vote, float *neccessary_majority);
 
 #endif //MASTERTHESIS_VOTING_H
 

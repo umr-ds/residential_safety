@@ -12,7 +12,6 @@
 #define ALARM_MODE_MESSAGE_TYPE 4
 
 
-
 extern const uint8_t mac_addresses[5][6];
 
 typedef struct event {
@@ -49,11 +48,9 @@ typedef struct Message {
 
 void espnow_recv_cb(const esp_now_recv_info_t *recv_info, const uint8_t *data, int len);
 
-void espnow_send_cb(const uint8_t *mac_addr, esp_now_send_status_t status);
-
 void initWifi();
 
-void initESPNOW(esp_now_recv_cb_t recvCallback, esp_now_send_cb_t sendCallback);
+void initESPNOW(esp_now_recv_cb_t recvCallback);
 
 uint8_t *get_own_mac();
 

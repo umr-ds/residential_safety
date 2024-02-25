@@ -46,9 +46,6 @@ static void init_ulp_program(void) {
     ulp_wakeup_flag_button = 0;
     ulp_high_thr_co = mean_co - 200 >= 3895 ? 4095 : mean_co + 200;
     ulp_high_thr_odor = mean_odor - 200 >= 3895 ? 4095 : mean_odor + 200;
-    printf("ULP high tsh odor: %lu\n", ulp_high_thr_odor);
-    //ulp_high_thr_co = (uint32_t) mean_co + 200;
-    //ulp_high_thr_odor = (uint32_t) mean_odor + 200;
     esp_deep_sleep_disable_rom_logging();
 }
 
@@ -60,7 +57,6 @@ static void start_ulp_program(void) {
 
 void voting_task(void *pvParameter) {
     event param = *(event *) pvParameter;
-    //printf("Voting task started for event flag: %u\n", param.event_flag);
     init_votes();
     Message msg = {
             .message_type = VOTING_REQUEST_MESSAGE_TYPE,
@@ -71,19 +67,21 @@ void voting_task(void *pvParameter) {
     set_sensor_voted(get_node_id(get_own_mac()));
     set_node_weight(get_node_id(get_own_mac()), get_own_node_weight(param.event_flag));
     uint64_t start_time = esp_timer_get_time();
+
+
     while ((esp_timer_get_time() - start_time) <= VOTING_TIMEOUT_INTERVAL) {
         if (check_all_nodes_voted() == true) break;
         for (int i = 0; i < MAX_NUM_SENSORS; i++) {
             // Skip if we are the current node
             if (get_node_id(get_own_mac()) == i) continue;
-            // Skip if node has  already voted
+            // Skip if node has already voted
             if (get_sensor_voted(i) == true) continue;
             send_message_to_node(msg, i);
-            vTaskDelay(100 / portTICK_PERIOD_MS);
+            vTaskDelay(10 / portTICK_PERIOD_MS);
         }
-        vTaskDelay(100 / portTICK_PERIOD_MS);
+        vTaskDelay(5000 / portTICK_PERIOD_MS);
     }
-    //printf("Voting finished, calculating decision\n");
+
     float neccessary_majority, vote = 0;
     bool decision = calculate_decision(param.event_flag, &vote, &neccessary_majority);
     msg.message_type = VOTING_RESULT_MESSAGE_TYPE;
@@ -91,17 +89,17 @@ void voting_task(void *pvParameter) {
     msg.data.voting_result_msg.decision = decision;
     msg.data.voting_result_msg.vote = vote;
     msg.data.voting_result_msg.necessary_majority = neccessary_majority;
-    send_message_to_node(msg, 0);
+    //send_message_to_node(msg, 0);
     if (decision) {
-        printf("2Nodes are accepting event :%i with Vote: %f and neccessary majority was: %f\n",
-                   msg.data.voting_result_msg.event_flag,
-                   msg.data.voting_result_msg.vote,
-                   msg.data.voting_result_msg.necessary_majority);
+        printf("Nodes are accepting event :%i with Vote: %f and neccessary majority was: %f\n",
+               msg.data.voting_result_msg.event_flag,
+               msg.data.voting_result_msg.vote,
+               msg.data.voting_result_msg.necessary_majority);
     } else {
-            printf("2Nodes are declining event :%i with Vote: %f and neccessary majority was: %f\n",
-                   msg.data.voting_result_msg.event_flag,
-                   msg.data.voting_result_msg.vote,
-                   msg.data.voting_result_msg.necessary_majority);
+        printf("Nodes are declining event :%i with Vote: %f and neccessary majority was: %f\n",
+               msg.data.voting_result_msg.event_flag,
+               msg.data.voting_result_msg.vote,
+               msg.data.voting_result_msg.necessary_majority);
     }
 
     voting_started = false;
@@ -119,8 +117,7 @@ void app_main() {
     initButton(button_isr_handler);
     initLED();
     initTemperatureSensor();
-    if(calibration_reset_counter == 10){
-        printf("Re calibrating\n");
+    if (calibration_reset_counter == 10) {
         calibrateTemperatureSensor(10, &meanTemp);
         mean_odor = calculate_odor_mean(NUM_CALIBRATION_VALUES);
         mean_co = calculate_co_mean(NUM_CALIBRATION_VALUES);
@@ -129,7 +126,7 @@ void app_main() {
     if (calibrated == false) {
         printf("Calibrating to preheat gas sensors. This may take 2 minutes, and is only done once the node was ejected from power\n");
         uint64_t start_time = esp_timer_get_time();
-        while ((esp_timer_get_time() - start_time) <= 10*MICROSEC_TO_SEC) {
+        while ((esp_timer_get_time() - start_time) <= 10 * MICROSEC_TO_SEC) {
             readOdorSensor();
             readCOSensor();
             vTaskDelay(100 / portTICK_PERIOD_MS);
@@ -144,7 +141,7 @@ void app_main() {
 
 
     initWifi();
-    initESPNOW(espnow_recv_cb, espnow_send_cb);
+    initESPNOW(espnow_recv_cb);
 
     esp_sleep_wakeup_cause_t cause = esp_sleep_get_wakeup_cause();
     switch (cause) {
@@ -162,7 +159,7 @@ void app_main() {
                     xTaskCreate(&voting_task, "voting_task", 2048, (void *) &event, 5, &taskHandle);
                 }
             } else if (((esp_sleep_get_ext1_wakeup_status() >> PIR_SENSOR_PIN) & 0x01) ||
-                (esp_sleep_get_ext1_wakeup_status() >> HALL_SENSOR_PIN) & 0x01) {
+                       (esp_sleep_get_ext1_wakeup_status() >> HALL_SENSOR_PIN) & 0x01) {
                 if ((esp_sleep_get_ext1_wakeup_status() >> PIR_SENSOR_PIN) & 0x01) printf("Wakeup from PIR Sensor");
                 if ((esp_sleep_get_ext1_wakeup_status() >> HALL_SENSOR_PIN) & 0x01) printf("Wakeup from Hall Sensor");
             } else if ((esp_sleep_get_ext1_wakeup_status() >> LEAKAGE_SENSOR_PIN) & 0x01) {
@@ -186,7 +183,7 @@ void app_main() {
                 Message msg = {
                         .message_type = ALARM_MODE_MESSAGE_TYPE
                 };
-                for(int i = 0; i < MAX_NUM_SENSORS; i++) send_message_to_node(msg,i);
+                for (int i = 0; i < MAX_NUM_SENSORS; i++) send_message_to_node(msg, i);
                 printf("Button wakeup, alarm mode is:%u\n", alarm_mode);
             } else if (ulp_wakeup_flag_odor == 1 || ulp_wakeup_flag_co == 1) {
                 ulp_last_result_odor &= UINT16_MAX;
@@ -212,7 +209,6 @@ void app_main() {
     if (voting_started == false) {
         uint64_t start_time = esp_timer_get_time();
         set_led_level(1);
-        printf("Waiting for messages\n");
         while (esp_timer_get_time() - start_time <= MESSAGE_WAITING_INTERVAL) {
             vTaskDelay(100 / portTICK_PERIOD_MS);
         }
@@ -275,7 +271,8 @@ void espnow_recv_cb(const esp_now_recv_info_t *recv_info, const uint8_t *data, i
                 // do not create another task, if one is already running
                 voting_started = true;
                 printf("Task not present yet, creating it\n");
-                xTaskCreate(&voting_task, "voting_task", 4096, (void *) &received_message.data.voting_request_msg.event, 5, &taskHandle);
+                xTaskCreate(&voting_task, "voting_task", 4096, (void *) &received_message.data.voting_request_msg.event,
+                            5, &taskHandle);
             }
             while (get_sensor_voted(get_node_id(get_own_mac())) == false) {
                 vTaskDelay(10 / portTICK_PERIOD_MS);
@@ -297,16 +294,14 @@ void espnow_recv_cb(const esp_now_recv_info_t *recv_info, const uint8_t *data, i
             set_sensor_voted(get_node_id(recv_info->src_addr));
             break;
         case VOTING_RESULT_MESSAGE_TYPE:
-                printf(received_message.data.voting_result_msg.decision == true ?
-                       "Nodes are accepting event :%i with Vote: %f and neccessary majority was: %f\n"
-                                                                                : "Nodes are not accepting event :%i with Vote: %f and neccessary majority was: %f\n",
-                       received_message.data.voting_result_msg.event_flag,
-                       received_message.data.voting_result_msg.vote,
-                       received_message.data.voting_result_msg.necessary_majority);
+            printf(received_message.data.voting_result_msg.decision == true ?
+                   "Nodes are accepting event :%i with Vote: %f and neccessary majority was: %f\n"
+                                                                            : "Nodes are not declining event :%i with Vote: %f and neccessary majority was: %f\n",
+                   received_message.data.voting_result_msg.event_flag,
+                   received_message.data.voting_result_msg.vote,
+                   received_message.data.voting_result_msg.necessary_majority);
             break;
         default:
             break;
     }
 }
-
-void espnow_send_cb(const uint8_t *mac_addr, esp_now_send_status_t status) {}

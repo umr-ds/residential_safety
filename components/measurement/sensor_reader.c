@@ -37,7 +37,7 @@ int get_led_level() {
     return gpio_get_level(LED_PIN);
 }
 
-void initADCs(){
+void initADCs() {
     /// Init ADCs for CO and Odor Sensors
     adc_oneshot_unit_init_cfg_t init_config1 = {
             .unit_id = ADC_UNIT_1,
@@ -92,7 +92,7 @@ float readTemperatureSensor() {
     return ((float) tdata * 200 / 0x100000) - 50;
 }
 
-uint8_t lis3dh_read_register(uint8_t reg){
+uint8_t lis3dh_read_register(uint8_t reg) {
     i2c_cmd_handle_t cmd = i2c_cmd_link_create();
     i2c_master_start(cmd);
     i2c_master_write_byte(cmd, (LIS3DH_ADDR << 1) | I2C_MASTER_WRITE, true);
@@ -160,7 +160,7 @@ void lis3dh_init(uint8_t threshold) {
 
 }
 
-void lis3dh_reset_interrupt(){
+void lis3dh_reset_interrupt() {
     lis3dh_read_register(LIS3DH_REG_INT1_SRC);
 }
 
@@ -180,7 +180,7 @@ Acceleration readAccelerometer() {
     y = y >> 6;
     z = ((int16_t) data[5] << 8) + (uint16_t) data[4];
     z = z >> 6;
-    float sensitivity = 0.001 ;
+    float sensitivity = 0.001;
     acceleration.x = (float) x * sensitivity;
     acceleration.y = (float) y * sensitivity;
     acceleration.z = (float) z * sensitivity;
@@ -202,7 +202,7 @@ int readLeakageSensor() {
     return gpio_get_level(LEAKAGE_SENSOR_PIN);
 }
 
-void initPIRSensor(){
+void initPIRSensor() {
     gpio_config_t io_conf;
     io_conf.intr_type = GPIO_INTR_DISABLE;
     io_conf.mode = GPIO_MODE_INPUT;
@@ -216,7 +216,7 @@ int readPIRSensor() {
     return gpio_get_level(PIR_SENSOR_PIN);
 }
 
-void initHallSensor(){
+void initHallSensor() {
     gpio_config_t io_conf;
     io_conf.intr_type = GPIO_INTR_DISABLE;
     io_conf.mode = GPIO_MODE_INPUT;
@@ -250,7 +250,7 @@ uint32_t calculate_odor_mean(int numValues) {
         mean += sensorValues[i];
     }
 
-    return (uint32_t )(mean/numValues);
+    return (uint32_t) (mean / numValues);
 }
 
 uint32_t calculate_co_mean(int numValues) {
@@ -260,7 +260,7 @@ uint32_t calculate_co_mean(int numValues) {
         sensorValues[i] = readCOSensor();
         mean += sensorValues[i];
     }
-    return (uint32_t )(mean / numValues);
+    return (uint32_t) (mean / numValues);
 }
 
 void calibrateAccelerometer(int numValues, Acceleration *mean, Acceleration *stdDev) {
@@ -287,7 +287,7 @@ void calibrateAccelerometer(int numValues, Acceleration *mean, Acceleration *std
     stdDev->z = sqrt(stdDev->z / numValues);
 }
 
-void calibrateTemperatureSensor(int numValues, float *mean){
+void calibrateTemperatureSensor(int numValues, float *mean) {
     float values[numValues];
     for (int i = 0; i < numValues; i++) {
         float temp = readTemperatureSensor();
