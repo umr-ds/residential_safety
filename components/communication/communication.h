@@ -20,6 +20,7 @@ typedef struct event {
     struct {
         bool odor_flag;
         bool co_flag;
+        float mean_temp;
     } co_or_odor_event_flag;
 } event;
 

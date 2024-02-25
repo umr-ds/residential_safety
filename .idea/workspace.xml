@@ -14,17 +14,15 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6fb98cdb-da65-4f4a-92d4-1681183f1b03" name="Changes" comment="feat: add fire/gas/acceleration scenarios. Consensus is now reached decentral">
+    <list default="true" id="6fb98cdb-da65-4f4a-92d4-1681183f1b03" name="Changes" comment="feat: add software for range tests between two nodes">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/communication/communication.h" beforeDir="false" afterPath="$PROJECT_DIR$/components/communication/communication.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/measurement/sensor_reader.c" beforeDir="false" afterPath="$PROJECT_DIR$/components/measurement/sensor_reader.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/measurement/sensor_reader.h" beforeDir="false" afterPath="$PROJECT_DIR$/components/measurement/sensor_reader.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/voting/voting.c" beforeDir="false" afterPath="$PROJECT_DIR$/components/voting/voting.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/voting/voting.h" beforeDir="false" afterPath="$PROJECT_DIR$/components/voting/voting.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/include/main.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/main.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/include/weights.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/weights.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main.c" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ulp/main.S" beforeDir="false" afterPath="$PROJECT_DIR$/ulp/main.S" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -50,7 +48,7 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="main" />
+        <entry key="$PROJECT_DIR$" value="range_test" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -238,6 +236,12 @@
     <configuration name="PlatformIO" type="platformio" factoryName="PlatformIO Debug" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="masterthesis" TARGET_NAME="PlatformIO" CONFIG_NAME="PlatformIO">
       <method v="2" />
     </configuration>
+    <configuration name="PlatformIO" type="platformio" factoryName="PlatformIO Debug" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="masterthesis" TARGET_NAME="PlatformIO" CONFIG_NAME="PlatformIO">
+      <method v="2" />
+    </configuration>
+    <configuration name="PlatformIO" type="platformio" factoryName="PlatformIO Debug" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="masterthesis" TARGET_NAME="PlatformIO" CONFIG_NAME="PlatformIO">
+      <method v="2" />
+    </configuration>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
@@ -300,6 +304,8 @@
       <workItem from="1708511291203" duration="24277000" />
       <workItem from="1708588359850" duration="14315000" />
       <workItem from="1708606662490" duration="15440000" />
+      <workItem from="1708771291593" duration="21934000" />
+      <workItem from="1708853355645" duration="25157000" />
     </task>
     <task id="LOCAL-00001" summary="refactor: undo last commit">
       <option name="closed" value="true" />

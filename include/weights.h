@@ -9,12 +9,12 @@
 
 RTC_DATA_ATTR float pir_weight = 1.0;
 RTC_DATA_ATTR float hall_weight = 1.0;
-RTC_DATA_ATTR float co_weight = 1.0;
-RTC_DATA_ATTR float odor_weight = 1.0;
+RTC_DATA_ATTR float co_weight = 0.5;
+RTC_DATA_ATTR float odor_weight = 0.5;
 RTC_DATA_ATTR float accel_weight = 1.0;
-RTC_DATA_ATTR float temperature_weight = 1.0;
+RTC_DATA_ATTR float temperature_weight = 0.5;
 
-RTC_DATA_ATTR double node_weight_water_leakage = 1.0;
+RTC_DATA_ATTR float node_weight_water_leakage = 1.0;
 RTC_DATA_ATTR float node_weight_fire = 1.0;
 RTC_DATA_ATTR float node_weight_intrusion = 1.0;
 RTC_DATA_ATTR float node_weight_gas_leakage = 1.0;

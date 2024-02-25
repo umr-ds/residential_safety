@@ -51,7 +51,7 @@ void initADCs(){
     };
 
     ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1_handle, CO_SENSOR_ADC_CHANNEL, &config));
-    config.atten = ADC_ATTEN_DB_2_5;
+    config.atten = ADC_ATTEN_DB_6;
     ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1_handle, ODOR_SENSOR_ADC_CHANNEL, &config));
 
 }
@@ -74,7 +74,7 @@ void initI2CDriver() {
 void initTemperatureSensor() {
     uint8_t writeBuf[3] = {0xBE, 0x08, 0x00};
     i2c_master_write_to_device(I2C_NUM_0, AHT20_ADDR, (const uint8_t *) writeBuf, sizeof(writeBuf),
-                               1000 / portTICK_PERIOD_MS);
+                               100 / portTICK_PERIOD_MS);
 }
 
 float readTemperatureSensor() {
@@ -115,21 +115,12 @@ uint8_t lis3dh_read_register(uint8_t reg){
     return value;
 }
 
-void lis3dh_init() {
+void lis3dh_init(uint8_t threshold) {
     // Data rate: 100Hz, Low-Power disabled, X,Y,Z Axes enabled
     uint8_t writeBuf[2] = {LIS3DH_REG_CTRL1, 0x57};
     i2c_master_write_to_device(I2C_NUM_0, LIS3DH_ADDR, (const uint8_t *) writeBuf, sizeof(writeBuf),
                                1000 / portTICK_PERIOD_MS);
 
-
-    writeBuf[0] = LIS3DH_REG_CTRL4;
-    writeBuf[1] = 0x18; // Continuous update, Little Endian, 4G-Scale, high-resoultion enabled
-    i2c_master_write_to_device(I2C_NUM_0, LIS3DH_ADDR, (const uint8_t *) writeBuf, sizeof(writeBuf),
-                               1000 / portTICK_PERIOD_MS);
-}
-
-void lis3dh_config_interrupt(uint8_t threshold){
-    uint8_t writeBuf[2];
     writeBuf[0] = LIS3DH_REG_CTRL2;
     writeBuf[1] = 0x09; // High pass filter normal mode (reset by reading REF register), enabled for INT1
     i2c_master_write_to_device(I2C_NUM_0, LIS3DH_ADDR, (const uint8_t *) writeBuf, sizeof(writeBuf),
@@ -140,35 +131,37 @@ void lis3dh_config_interrupt(uint8_t threshold){
     i2c_master_write_to_device(I2C_NUM_0, LIS3DH_ADDR, (const uint8_t *) writeBuf, sizeof(writeBuf),
                                1000 / portTICK_PERIOD_MS);
 
+    writeBuf[0] = LIS3DH_REG_CTRL4;
+    writeBuf[1] = 0x00; // Continuous update, Little Endian, 2G-Scale, high-resoultion disabled
+    i2c_master_write_to_device(I2C_NUM_0, LIS3DH_ADDR, (const uint8_t *) writeBuf, sizeof(writeBuf),
+                               1000 / portTICK_PERIOD_MS);
+
     writeBuf[0] = LIS3DH_REG_CTRL5;
     writeBuf[1] = 0x08; // Latch interrupt enabled
     i2c_master_write_to_device(I2C_NUM_0, LIS3DH_ADDR, (const uint8_t *) writeBuf, sizeof(writeBuf),
                                1000 / portTICK_PERIOD_MS);
 
     writeBuf[0] = LIS3DH_REG_INT1_THS;
-    writeBuf[1] = threshold; // 1LSB at 4G-Scale = 32mg
+    writeBuf[1] = 0x10;
     i2c_master_write_to_device(I2C_NUM_0, LIS3DH_ADDR, (const uint8_t *) writeBuf, sizeof(writeBuf),
                                1000 / portTICK_PERIOD_MS);
 
     writeBuf[0] = LIS3DH_REG_INT1_DUR;
-    writeBuf[1] = 0x00;
+    writeBuf[1] = 0x01;
     i2c_master_write_to_device(I2C_NUM_0, LIS3DH_ADDR, (const uint8_t *) writeBuf, sizeof(writeBuf),
                                1000 / portTICK_PERIOD_MS);
 
-    lis3dh_read_register(0x26); //read register to set reference acceleration
+    lis3dh_read_register(LIS3DH_REG_REFERENCE);
 
     writeBuf[0] = LIS3DH_REG_INT1_CFG;
     writeBuf[1] = 0x2A;
     i2c_master_write_to_device(I2C_NUM_0, LIS3DH_ADDR, (const uint8_t *) writeBuf, sizeof(writeBuf),
                                1000 / portTICK_PERIOD_MS);
+
 }
 
 void lis3dh_reset_interrupt(){
-    uint8_t writeBuf[2];
-    writeBuf[0] = LIS3DH_REG_INT1_CFG;
-    writeBuf[1] = 0x2A;
-    i2c_master_write_to_device(I2C_NUM_0, LIS3DH_ADDR, (const uint8_t *) writeBuf, sizeof(writeBuf),
-                               1000 / portTICK_PERIOD_MS);
+    lis3dh_read_register(LIS3DH_REG_INT1_SRC);
 }
 
 Acceleration readAccelerometer() {
@@ -182,12 +175,12 @@ Acceleration readAccelerometer() {
     // and shift by 4 because of 12-bit data
     int16_t x, y, z;
     x = ((int16_t) data[1] << 8) + (uint16_t) data[0];
-    x = x >> 4;
+    x = x >> 6;
     y = ((int16_t) data[3] << 8) + (uint16_t) data[2];
-    y = y >> 4;
+    y = y >> 6;
     z = ((int16_t) data[5] << 8) + (uint16_t) data[4];
-    z = z >> 4;
-    float sensitivity = 0.002; // 2mg per digit
+    z = z >> 6;
+    float sensitivity = 0.001 ;
     acceleration.x = (float) x * sensitivity;
     acceleration.y = (float) y * sensitivity;
     acceleration.z = (float) z * sensitivity;
@@ -294,3 +287,12 @@ void calibrateAccelerometer(int numValues, Acceleration *mean, Acceleration *std
     stdDev->z = sqrt(stdDev->z / numValues);
 }
 
+void calibrateTemperatureSensor(int numValues, float *mean){
+    float values[numValues];
+    for (int i = 0; i < numValues; i++) {
+        float temp = readTemperatureSensor();
+        values[i] = temp;
+        *mean += temp;
+    }
+    *mean /= numValues;
+}
