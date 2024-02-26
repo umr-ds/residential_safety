@@ -8,7 +8,7 @@ void initButton(gpio_isr_t button_isr) {
     gpio_config_t io_conf = {
             .pin_bit_mask = (1ULL << BUTTON_PIN),
             .mode = GPIO_MODE_INPUT,
-            .intr_type = GPIO_INTR_LOW_LEVEL,
+            .intr_type = GPIO_INTR_NEGEDGE,
             .pull_up_en = GPIO_PULLUP_ENABLE,
             .pull_down_en = GPIO_PULLDOWN_DISABLE
     };
@@ -26,7 +26,6 @@ void initLED() {
             .pull_down_en = GPIO_PULLDOWN_ENABLE,
     };
     gpio_config(&io_conf);
-
 }
 
 void set_led_level(uint8_t level) {
