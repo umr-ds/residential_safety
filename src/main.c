@@ -20,6 +20,7 @@ RTC_SLOW_ATTR volatile bool alarm_mode = false;
 RTC_SLOW_ATTR bool calibrated = false;
 RTC_SLOW_ATTR TaskHandle_t taskHandle = NULL;
 RTC_SLOW_ATTR uint8_t calibration_reset_counter = 0;
+RTC_SLOW_ATTR volatile bool button_pressed = false;
 
 static void init_ulp_program(void) {
 
@@ -107,14 +108,28 @@ void voting_task(void *pvParameter) {
     vTaskDelete(taskHandle);
 }
 
+void button_task(){
+    while(1){
+        if(button_pressed){
+            printf("button was pressed\n");
+            vTaskDelay(1000/portTICK_PERIOD_MS);
+            button_pressed = false;
+        }
+        vTaskDelay(10/portTICK_PERIOD_MS);
+    }
+}
+
 void IRAM_ATTR button_isr_handler(void *arg) {
-    alarm_mode = !alarm_mode;
+    button_pressed = true;
 }
 
 void app_main() {
+
+    initButton(button_isr_handler);
+    xTaskCreatePinnedToCore(&button_task, "buttonTask", 2048, NULL, 5, NULL, 1);
     initADCs();
     initI2CDriver();
-    initButton(button_isr_handler);
+
     initLED();
     initTemperatureSensor();
     if (calibration_reset_counter == 10) {
@@ -138,7 +153,6 @@ void app_main() {
         lis3dh_init(0x10);
         calibrated = true;
     }
-
 
     initWifi();
     initESPNOW(espnow_recv_cb);
@@ -183,7 +197,10 @@ void app_main() {
                 Message msg = {
                         .message_type = ALARM_MODE_MESSAGE_TYPE
                 };
-                for (int i = 0; i < MAX_NUM_SENSORS; i++) send_message_to_node(msg, i);
+                for (int i = 0; i < MAX_NUM_SENSORS; i++){
+                    if(i == get_node_id(get_own_mac())) continue;
+                    send_message_to_node(msg, i);
+                }
                 printf("Button wakeup, alarm mode is:%u\n", alarm_mode);
             } else if (ulp_wakeup_flag_odor == 1 || ulp_wakeup_flag_co == 1) {
                 ulp_last_result_odor &= UINT16_MAX;
@@ -208,11 +225,9 @@ void app_main() {
     }
     if (voting_started == false) {
         uint64_t start_time = esp_timer_get_time();
-        set_led_level(1);
         while (esp_timer_get_time() - start_time <= MESSAGE_WAITING_INTERVAL) {
             vTaskDelay(100 / portTICK_PERIOD_MS);
         }
-        set_led_level(0);
     }
     while (voting_started == true) {
         vTaskDelay(100 / portTICK_PERIOD_MS);
@@ -235,6 +250,7 @@ void app_main() {
     ESP_ERROR_CHECK(rtc_gpio_pulldown_dis(BUTTON_PIN));
 
     if (alarm_mode) {
+        printf("Alarm mode enabled\n");
         ESP_ERROR_CHECK(rtc_gpio_init(HALL_SENSOR_PIN));
         ESP_ERROR_CHECK(rtc_gpio_set_direction_in_sleep(HALL_SENSOR_PIN, RTC_GPIO_MODE_INPUT_ONLY));
         ESP_ERROR_CHECK(rtc_gpio_pullup_en(HALL_SENSOR_PIN));
@@ -264,7 +280,9 @@ void espnow_recv_cb(const esp_now_recv_info_t *recv_info, const uint8_t *data, i
     Message received_message = *(Message *) data;
     switch (received_message.message_type) {
         case ALARM_MODE_MESSAGE_TYPE:
+            printf("Received Alarm message, Alarm mode before flipping: %u\n", alarm_mode);
             alarm_mode = !alarm_mode;
+            printf("Alarm mode after flipping: %u\n", alarm_mode);
             break;
         case VOTING_REQUEST_MESSAGE_TYPE:
             if (taskHandle == NULL) {
