@@ -9,40 +9,35 @@
 #define VOTING_REQUEST_MESSAGE_TYPE 1
 #define VOTING_ANSWER_MESSAGE_TYPE 2
 #define VOTING_RESULT_MESSAGE_TYPE 3
-#define ALARM_MODE_MESSAGE_TYPE 4
 
 
 extern const uint8_t mac_addresses[5][6];
 
-typedef struct event {
+/*typedef struct event {
     uint8_t event_flag;
     struct {
         bool odor_flag;
         bool co_flag;
         float mean_temp;
     } co_or_odor_event_flag;
-} event;
+    struct {
+        bool movement_detected;
+    } pir_sensor;
+} event;*/
 
 typedef struct Message {
     int message_type;
+    int event_flag;
     union {
         struct {
-            event event;
-        } voting_request_msg;
-        struct {
-            int event_flag;
             float vote;
             float vote_weight;
         } voting_answer_msg;
         struct {
-            int event_flag;
             bool decision;
             float vote;
             float necessary_majority;
         } voting_result_msg;
-        struct {
-            int message_flag;
-        } ack_msg;
     } data;
 } Message;
 

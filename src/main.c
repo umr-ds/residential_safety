@@ -15,12 +15,12 @@ extern const uint8_t ulp_main_bin_start[] asm("_binary_ulp_main_bin_start");
 extern const uint8_t ulp_main_bin_end[]   asm("_binary_ulp_main_bin_end");
 
 
-RTC_SLOW_ATTR volatile bool voting_started = false;
-RTC_SLOW_ATTR volatile bool alarm_mode = false;
-RTC_SLOW_ATTR bool calibrated = false;
-RTC_SLOW_ATTR TaskHandle_t taskHandle = NULL;
-RTC_SLOW_ATTR uint8_t calibration_reset_counter = 0;
-RTC_SLOW_ATTR volatile bool button_pressed = false;
+static volatile bool voting_started = false;
+
+RTC_DATA_ATTR static volatile bool alarm_mode = false;
+RTC_DATA_ATTR static bool calibrated = false;
+RTC_DATA_ATTR TaskHandle_t taskHandle = NULL;
+RTC_DATA_ATTR static uint8_t calibration_reset_counter = 0;
 
 static void init_ulp_program(void) {
 
@@ -57,16 +57,17 @@ static void start_ulp_program(void) {
 
 
 void voting_task(void *pvParameter) {
-    event param = *(event *) pvParameter;
+    int event_flag = (int) pvParameter;
+    printf("Event flag is: %i\n", event_flag);
     init_votes();
     Message msg = {
             .message_type = VOTING_REQUEST_MESSAGE_TYPE,
-            .data.voting_request_msg.event = param,
+            .event_flag = event_flag,
     };
-
-    set_vote(get_node_id(get_own_mac()), calculate_vote(param));
+    //if(param.event_flag == INTRUSION_FLAG)
+    set_vote(get_node_id(get_own_mac()), calculate_vote(event_flag));
     set_sensor_voted(get_node_id(get_own_mac()));
-    set_node_weight(get_node_id(get_own_mac()), get_own_node_weight(param.event_flag));
+    set_node_weight(get_node_id(get_own_mac()), get_own_node_weight(event_flag));
     uint64_t start_time = esp_timer_get_time();
 
 
@@ -82,23 +83,22 @@ void voting_task(void *pvParameter) {
         }
         vTaskDelay(5000 / portTICK_PERIOD_MS);
     }
-
     float neccessary_majority, vote = 0;
-    bool decision = calculate_decision(param.event_flag, &vote, &neccessary_majority);
+    bool decision = calculate_decision(event_flag, &vote, &neccessary_majority);
     msg.message_type = VOTING_RESULT_MESSAGE_TYPE;
-    msg.data.voting_result_msg.event_flag = param.event_flag;
+    msg.event_flag = event_flag;
     msg.data.voting_result_msg.decision = decision;
     msg.data.voting_result_msg.vote = vote;
     msg.data.voting_result_msg.necessary_majority = neccessary_majority;
     //send_message_to_node(msg, 0);
     if (decision) {
         printf("Nodes are accepting event :%i with Vote: %f and neccessary majority was: %f\n",
-               msg.data.voting_result_msg.event_flag,
+               msg.event_flag,
                msg.data.voting_result_msg.vote,
                msg.data.voting_result_msg.necessary_majority);
     } else {
         printf("Nodes are declining event :%i with Vote: %f and neccessary majority was: %f\n",
-               msg.data.voting_result_msg.event_flag,
+               msg.event_flag,
                msg.data.voting_result_msg.vote,
                msg.data.voting_result_msg.necessary_majority);
     }
@@ -110,28 +110,29 @@ void voting_task(void *pvParameter) {
 
 void button_task(){
     while(1){
-        if(button_pressed){
+        if(wasButtonPressed()){
             printf("button was pressed\n");
+            alarm_mode = !alarm_mode;
             vTaskDelay(1000/portTICK_PERIOD_MS);
-            button_pressed = false;
+            resetButtonPressed();
         }
         vTaskDelay(10/portTICK_PERIOD_MS);
     }
 }
 
-void IRAM_ATTR button_isr_handler(void *arg) {
-    button_pressed = true;
-}
+
 
 void app_main() {
-
-    initButton(button_isr_handler);
+    initLED();
+    initButton();
+    if(alarm_mode) initPIRSensor();
+    initISRs(alarm_mode);
     xTaskCreatePinnedToCore(&button_task, "buttonTask", 2048, NULL, 5, NULL, 1);
+    if(alarm_mode) set_led_level(1);
     initADCs();
     initI2CDriver();
-
-    initLED();
     initTemperatureSensor();
+
     if (calibration_reset_counter == 10) {
         calibrateTemperatureSensor(10, &meanTemp);
         mean_odor = calculate_odor_mean(NUM_CALIBRATION_VALUES);
@@ -167,23 +168,21 @@ void app_main() {
                 printf("Wakeup from Accelerometer Interrupt Pin\n");
                 if (taskHandle == NULL) {
                     voting_started = true;
-                    event event = {
-                            .event_flag = SHOCK_FLAG,
-                    };
-                    xTaskCreate(&voting_task, "voting_task", 2048, (void *) &event, 5, &taskHandle);
+                    xTaskCreate(&voting_task, "voting_task", 2048, (void *) SHOCK_FLAG, 5, &taskHandle);
                 }
-            } else if (((esp_sleep_get_ext1_wakeup_status() >> PIR_SENSOR_PIN) & 0x01) ||
-                       (esp_sleep_get_ext1_wakeup_status() >> HALL_SENSOR_PIN) & 0x01) {
-                if ((esp_sleep_get_ext1_wakeup_status() >> PIR_SENSOR_PIN) & 0x01) printf("Wakeup from PIR Sensor");
-                if ((esp_sleep_get_ext1_wakeup_status() >> HALL_SENSOR_PIN) & 0x01) printf("Wakeup from Hall Sensor");
+            } else if ((esp_sleep_get_ext1_wakeup_status() >> PIR_SENSOR_PIN) & 0x01) {
+                    printf("Wakeup from PIR Sensor");
+                    setMovementDetected();
+                if (taskHandle == NULL) {
+                    voting_started = true;
+                    xTaskCreate(&voting_task, "voting_task", 4096, (void *) INTRUSION_FLAG, 5, &taskHandle);
+                }
+
             } else if ((esp_sleep_get_ext1_wakeup_status() >> LEAKAGE_SENSOR_PIN) & 0x01) {
                 printf("Wakeup from Leakage Pin\n");
                 if (taskHandle == NULL) {
                     voting_started = true;
-                    event event = {
-                            .event_flag = WATER_LEAKAGE_FLAG,
-                    };
-                    xTaskCreate(&voting_task, "voting_task", 4096, (void *) &event, 5, &taskHandle);
+                    xTaskCreate(&voting_task, "voting_task", 4096, (void *) WATER_LEAKAGE_FLAG, 5, &taskHandle);
                 }
             }
             break;
@@ -194,13 +193,7 @@ void app_main() {
             ulp_wakeup_flag_button &= UINT16_MAX;
             if (ulp_wakeup_flag_button == 1) {
                 alarm_mode = !alarm_mode;
-                Message msg = {
-                        .message_type = ALARM_MODE_MESSAGE_TYPE
-                };
-                for (int i = 0; i < MAX_NUM_SENSORS; i++){
-                    if(i == get_node_id(get_own_mac())) continue;
-                    send_message_to_node(msg, i);
-                }
+                set_led_level(1);
                 printf("Button wakeup, alarm mode is:%u\n", alarm_mode);
             } else if (ulp_wakeup_flag_odor == 1 || ulp_wakeup_flag_co == 1) {
                 ulp_last_result_odor &= UINT16_MAX;
@@ -208,21 +201,14 @@ void app_main() {
                 printf("Last result CO: %lu, Odor: %lu\n", ulp_last_result_co, ulp_high_thr_odor);
                 if (taskHandle == NULL) {
                     voting_started = true;
-                    event event = {
-                            .event_flag = FIRE_OR_GAS_FLAG,
-                            .co_or_odor_event_flag = {
-                                    .co_flag = ulp_wakeup_flag_co == 1 ? true : false,
-                                    .odor_flag = ulp_wakeup_flag_odor == 1 ? true : false,
-                                    .mean_temp = meanTemp,
-                            },
-                    };
-                    xTaskCreate(&voting_task, "voting_task", 2048, (void *) &event, 5, &taskHandle);
-
+                    xTaskCreate(&voting_task, "voting_task", 2048, (void *) FIRE_OR_GAS_FLAG, 5, &taskHandle);
                 }
             }
+            break;
         default:
             break;
     }
+
     if (voting_started == false) {
         uint64_t start_time = esp_timer_get_time();
         while (esp_timer_get_time() - start_time <= MESSAGE_WAITING_INTERVAL) {
@@ -251,45 +237,36 @@ void app_main() {
 
     if (alarm_mode) {
         printf("Alarm mode enabled\n");
-        ESP_ERROR_CHECK(rtc_gpio_init(HALL_SENSOR_PIN));
-        ESP_ERROR_CHECK(rtc_gpio_set_direction_in_sleep(HALL_SENSOR_PIN, RTC_GPIO_MODE_INPUT_ONLY));
-        ESP_ERROR_CHECK(rtc_gpio_pullup_en(HALL_SENSOR_PIN));
-        ESP_ERROR_CHECK(rtc_gpio_pulldown_dis(HALL_SENSOR_PIN));
-
         ESP_ERROR_CHECK(rtc_gpio_init(PIR_SENSOR_PIN));
         ESP_ERROR_CHECK(rtc_gpio_set_direction_in_sleep(PIR_SENSOR_PIN, RTC_GPIO_MODE_INPUT_ONLY));
         ESP_ERROR_CHECK(rtc_gpio_pullup_dis(PIR_SENSOR_PIN));
         ESP_ERROR_CHECK(rtc_gpio_pulldown_en(PIR_SENSOR_PIN));
         esp_sleep_enable_ext1_wakeup(
-                ((1ULL << LEAKAGE_SENSOR_PIN) | (1ULL << ACCELEROMETER_INTR_PIN) | (1ULL << HALL_SENSOR_PIN) |
-                 (1ULL << PIR_SENSOR_PIN)), ESP_EXT1_WAKEUP_ANY_HIGH);
+                ((1ULL << LEAKAGE_SENSOR_PIN) | (1ULL << ACCELEROMETER_INTR_PIN) | (1ULL << PIR_SENSOR_PIN) ), ESP_EXT1_WAKEUP_ANY_HIGH);
     } else {
         esp_sleep_enable_ext1_wakeup(((1ULL << LEAKAGE_SENSOR_PIN) | (1ULL << ACCELEROMETER_INTR_PIN)),
                                      ESP_EXT1_WAKEUP_ANY_HIGH);
     }
     printf("Going to sleep mode\n");
+
+    resetMovementDetected();
+    printf("Calibration reset counter: %i\n", calibration_reset_counter);
     calibration_reset_counter++;
     init_ulp_program();
     esp_sleep_enable_ulp_wakeup();
     start_ulp_program();
     esp_deep_sleep(DEEPSLEEP_INTERVAL);
-
 }
 
 void espnow_recv_cb(const esp_now_recv_info_t *recv_info, const uint8_t *data, int len) {
     Message received_message = *(Message *) data;
     switch (received_message.message_type) {
-        case ALARM_MODE_MESSAGE_TYPE:
-            printf("Received Alarm message, Alarm mode before flipping: %u\n", alarm_mode);
-            alarm_mode = !alarm_mode;
-            printf("Alarm mode after flipping: %u\n", alarm_mode);
-            break;
         case VOTING_REQUEST_MESSAGE_TYPE:
             if (taskHandle == NULL) {
                 // do not create another task, if one is already running
                 voting_started = true;
                 printf("Task not present yet, creating it\n");
-                xTaskCreate(&voting_task, "voting_task", 4096, (void *) &received_message.data.voting_request_msg.event,
+                xTaskCreate(&voting_task, "voting_task", 4096, (void *) &received_message.event_flag,
                             5, &taskHandle);
             }
             while (get_sensor_voted(get_node_id(get_own_mac())) == false) {
@@ -298,10 +275,10 @@ void espnow_recv_cb(const esp_now_recv_info_t *recv_info, const uint8_t *data, i
             //printf("Should send vote %f\n", get_vote(get_node_id(get_own_mac())));
             Message voting_msg = {
                     .message_type = VOTING_ANSWER_MESSAGE_TYPE,
-                    .data.voting_answer_msg.event_flag = received_message.data.voting_request_msg.event.event_flag,
+                    .event_flag = received_message.event_flag,
                     .data.voting_answer_msg.vote = get_vote(get_node_id(get_own_mac())),
                     .data.voting_answer_msg.vote_weight = get_own_node_weight(
-                            received_message.data.voting_request_msg.event.event_flag),
+                            received_message.event_flag),
             };
             //printf("Sending vote: %f\n", voting_msg.data.voting_answer_msg.vote);
             send_message_to_node(voting_msg, get_node_id(recv_info->src_addr));
@@ -315,7 +292,7 @@ void espnow_recv_cb(const esp_now_recv_info_t *recv_info, const uint8_t *data, i
             printf(received_message.data.voting_result_msg.decision == true ?
                    "Nodes are accepting event :%i with Vote: %f and neccessary majority was: %f\n"
                                                                             : "Nodes are not declining event :%i with Vote: %f and neccessary majority was: %f\n",
-                   received_message.data.voting_result_msg.event_flag,
+                   received_message.event_flag,
                    received_message.data.voting_result_msg.vote,
                    received_message.data.voting_result_msg.necessary_majority);
             break;

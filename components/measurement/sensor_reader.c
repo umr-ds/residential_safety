@@ -3,8 +3,50 @@
 #include "math.h"
 
 adc_oneshot_unit_handle_t adc1_handle;
+static volatile bool button_pressed = false;
+static volatile bool movement_detected = false;
 
-void initButton(gpio_isr_t button_isr) {
+void IRAM_ATTR isr_handler(void *arg) {
+    gpio_num_t pin = (gpio_num_t) arg;
+    switch (pin) {
+        case BUTTON_PIN:
+            button_pressed = true;
+            break;
+        case PIR_SENSOR_PIN:
+            movement_detected = true;
+            break;
+        default:
+            break;
+    }
+}
+
+void resetButtonPressed(){
+    button_pressed = false;
+}
+
+bool wasButtonPressed(){
+    return button_pressed;
+}
+
+bool wasMovementDetected(){
+    return movement_detected;
+}
+
+void setMovementDetected() {
+    movement_detected = true;
+}
+
+void resetMovementDetected(){
+    movement_detected = false;
+}
+
+void initISRs(bool alarm_mode){
+    gpio_install_isr_service(0);
+    gpio_isr_handler_add(BUTTON_PIN, isr_handler, (void *) BUTTON_PIN);
+    if(alarm_mode) gpio_isr_handler_add(PIR_SENSOR_PIN, isr_handler, (void *) PIR_SENSOR_PIN);
+}
+
+void initButton() {
     gpio_config_t io_conf = {
             .pin_bit_mask = (1ULL << BUTTON_PIN),
             .mode = GPIO_MODE_INPUT,
@@ -13,8 +55,6 @@ void initButton(gpio_isr_t button_isr) {
             .pull_down_en = GPIO_PULLDOWN_DISABLE
     };
     gpio_config(&io_conf);
-    gpio_install_isr_service(0);
-    gpio_isr_handler_add(BUTTON_PIN, button_isr, (void *) BUTTON_PIN);
 }
 
 void initLED() {
@@ -202,12 +242,13 @@ int readLeakageSensor() {
 }
 
 void initPIRSensor() {
-    gpio_config_t io_conf;
-    io_conf.intr_type = GPIO_INTR_DISABLE;
-    io_conf.mode = GPIO_MODE_INPUT;
-    io_conf.pin_bit_mask = (1ULL << PIR_SENSOR_PIN);
-    io_conf.pull_down_en = GPIO_PULLDOWN_ENABLE;
-    io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
+    gpio_config_t io_conf = {
+            .pin_bit_mask = (1ULL << PIR_SENSOR_PIN),
+            .mode = GPIO_MODE_INPUT,
+            .intr_type = GPIO_INTR_POSEDGE,
+            .pull_up_en = GPIO_PULLUP_DISABLE,
+            .pull_down_en = GPIO_PULLDOWN_ENABLE,
+    };
     gpio_config(&io_conf);
 }
 

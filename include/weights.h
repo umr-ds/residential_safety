@@ -7,8 +7,8 @@
 #ifndef MASTERTHESIS_WEIGHTS_H
 #define MASTERTHESIS_WEIGHTS_H
 
-RTC_DATA_ATTR float pir_weight = 1.0;
-RTC_DATA_ATTR float hall_weight = 1.0;
+RTC_DATA_ATTR float pir_weight = 0.5;
+RTC_DATA_ATTR float hall_weight = 0.5;
 RTC_DATA_ATTR float co_weight = 0.5;
 RTC_DATA_ATTR float odor_weight = 0.5;
 RTC_DATA_ATTR float accel_weight = 1.0;

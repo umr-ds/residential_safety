@@ -18,18 +18,22 @@ float calculate_water_leakage_vote() {
     return (float) readLeakageSensor();
 }
 
-float calculate_gas_or_fire_vote(event param) {
-    printf("Odor flag: %u, CO flag: %u\n", param.co_or_odor_event_flag.odor_flag, param.co_or_odor_event_flag.co_flag);
+float calculate_gas_or_fire_vote(int event_flag) {
+    //printf("Odor flag: %u, CO flag: %u\n", param.co_or_odor_event_flag.odor_flag, param.co_or_odor_event_flag.co_flag);
     float current_temp = readTemperatureSensor();
-    printf("Current temp is: %f and mean Temp is: %f\n", current_temp, param.co_or_odor_event_flag.mean_temp);
+    // printf("Current temp is: %f and mean Temp is: %f\n", current_temp, param.co_or_odor_event_flag.mean_temp);
     return 0.0;
     //return temp == true ? co_weight*co_flag + temperature_weight : odor_flag*odor_weight+co_flag*co_weight;
 }
 
 
-float calculate_intrusion_vote() {
-
-    return pir_weight + hall_weight;
+float calculate_intrusion_vote(int event_flag) {
+    initHallSensor();
+    bool movement = wasMovementDetected();
+    printf("Hall Sensor: %i, was movement detected: %u\n ", readHallSensor(), movement);
+    resetMovementDetected();
+    float vote = pir_weight*movement + hall_weight * readHallSensor();
+    return vote;
 }
 
 float calculate_shock_vote() {
@@ -39,17 +43,17 @@ float calculate_shock_vote() {
 
 }
 
-float calculate_vote(event event) {
+float calculate_vote(int event_flag) {
     float vote = 0.0;
-    switch (event.event_flag) {
+    switch (event_flag) {
         case WATER_LEAKAGE_FLAG:
             return calculate_water_leakage_vote();
         case SHOCK_FLAG:
             return calculate_shock_vote();
         case FIRE_OR_GAS_FLAG:
-            return calculate_gas_or_fire_vote(event);
+            return calculate_gas_or_fire_vote(event_flag);
         case INTRUSION_FLAG:
-            return calculate_intrusion_vote();
+            return calculate_intrusion_vote(event_flag);
         default:
             return vote;
     }
@@ -106,14 +110,27 @@ bool calculate_decision(int event_flag, float *final_vote, float *required_major
     int cnt = 0;
     for (int i = 0; i < MAX_NUM_SENSORS; i++) {
         if (voted_sensors[i] == true) {
+            printf("Sensor %i voted with vote: %f\n", i, votes[i]);
             cnt++;
         }
     }
     if (cnt == 1) {
+        int voted_index = -1;
         for (int i = 0; i < MAX_NUM_SENSORS; i++) {
-            if (voted_sensors[i] == true && votes[i] >= 0.0) {
-                *required_majority = votes[i];
-                *final_vote = votes[i];
+            if (voted_sensors[i] == true && votes[i] > 0.0) voted_index = i;
+        }
+        if(voted_index == -1) {
+            *required_majority = 1.0;
+            *final_vote = 0;
+            return 0;
+        } else {
+            if(event_flag == INTRUSION_FLAG) {
+                *required_majority = 1.0;
+                *final_vote = votes[voted_index];
+                return 0;
+            } else {
+                *required_majority = votes[voted_index];
+                *final_vote = votes[voted_index];
                 return 1;
             }
         }
@@ -142,7 +159,6 @@ bool calculate_decision(int event_flag, float *final_vote, float *required_major
             *required_majority = majority;
             if (sum_votes >= majority && sum_votes > 0.0) return true;
             else return false;
-
         case INTRUSION_FLAG:
             majority = 1.0;
             *required_majority = majority;

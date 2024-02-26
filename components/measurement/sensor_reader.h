@@ -55,8 +55,19 @@ typedef struct Acceleration {
     float z;
 } Acceleration;
 
+void resetButtonPressed();
 
-void initButton(gpio_isr_t button_isr);
+bool wasButtonPressed();
+
+bool wasMovementDetected();
+
+void setMovementDetected();
+
+void resetMovementDetected();
+
+void initISRs(bool alarm_mode);
+
+void initButton();
 
 void initLED();
 
