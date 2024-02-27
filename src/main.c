@@ -58,7 +58,6 @@ static void start_ulp_program(void) {
 
 void voting_task(void *pvParameter) {
     int event_flag = (int) pvParameter;
-    printf("Event flag is: %i\n", event_flag);
     init_votes();
     Message msg = {
             .message_type = VOTING_REQUEST_MESSAGE_TYPE,
@@ -90,7 +89,6 @@ void voting_task(void *pvParameter) {
     msg.data.voting_result_msg.decision = decision;
     msg.data.voting_result_msg.vote = vote;
     msg.data.voting_result_msg.necessary_majority = neccessary_majority;
-    //send_message_to_node(msg, 0);
     if (decision) {
         printf("Nodes are accepting event :%i with Vote: %f and neccessary majority was: %f\n",
                msg.event_flag,
@@ -125,8 +123,6 @@ void button_task(){
 void app_main() {
     initLED();
     initButton();
-    if(alarm_mode) initPIRSensor();
-    initISRs(alarm_mode);
     xTaskCreatePinnedToCore(&button_task, "buttonTask", 2048, NULL, 5, NULL, 1);
     if(alarm_mode) set_led_level(1);
     initADCs();
@@ -172,7 +168,7 @@ void app_main() {
                 }
             } else if ((esp_sleep_get_ext1_wakeup_status() >> PIR_SENSOR_PIN) & 0x01) {
                     printf("Wakeup from PIR Sensor");
-                    setMovementDetected();
+                    //setMovementDetected();
                 if (taskHandle == NULL) {
                     voting_started = true;
                     xTaskCreate(&voting_task, "voting_task", 4096, (void *) INTRUSION_FLAG, 5, &taskHandle);
@@ -248,9 +244,6 @@ void app_main() {
                                      ESP_EXT1_WAKEUP_ANY_HIGH);
     }
     printf("Going to sleep mode\n");
-
-    resetMovementDetected();
-    printf("Calibration reset counter: %i\n", calibration_reset_counter);
     calibration_reset_counter++;
     init_ulp_program();
     esp_sleep_enable_ulp_wakeup();
@@ -263,10 +256,11 @@ void espnow_recv_cb(const esp_now_recv_info_t *recv_info, const uint8_t *data, i
     switch (received_message.message_type) {
         case VOTING_REQUEST_MESSAGE_TYPE:
             if (taskHandle == NULL) {
+                int event_flag = received_message.event_flag;
                 // do not create another task, if one is already running
                 voting_started = true;
-                printf("Task not present yet, creating it\n");
-                xTaskCreate(&voting_task, "voting_task", 4096, (void *) &received_message.event_flag,
+                printf("Task not present yet, creating it with event flag: %i\n", event_flag);
+                xTaskCreate(&voting_task, "voting_task", 4096, (void *) event_flag,
                             5, &taskHandle);
             }
             while (get_sensor_voted(get_node_id(get_own_mac())) == false) {

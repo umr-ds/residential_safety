@@ -27,11 +27,17 @@ float calculate_gas_or_fire_vote(int event_flag) {
 }
 
 
-float calculate_intrusion_vote(int event_flag) {
+float calculate_intrusion_vote() {
     initHallSensor();
-    bool movement = wasMovementDetected();
+    initPIRSensor();
+    int movement = 0;
+    for(int i = 0; i < 500; i++){
+        if(readPIRSensor()==1){
+            movement = 1;
+            break;
+        }
+    }
     printf("Hall Sensor: %i, was movement detected: %u\n ", readHallSensor(), movement);
-    resetMovementDetected();
     float vote = pir_weight*movement + hall_weight * readHallSensor();
     return vote;
 }
@@ -53,7 +59,7 @@ float calculate_vote(int event_flag) {
         case FIRE_OR_GAS_FLAG:
             return calculate_gas_or_fire_vote(event_flag);
         case INTRUSION_FLAG:
-            return calculate_intrusion_vote(event_flag);
+            return calculate_intrusion_vote();
         default:
             return vote;
     }

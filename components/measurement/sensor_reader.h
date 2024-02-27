@@ -59,14 +59,6 @@ void resetButtonPressed();
 
 bool wasButtonPressed();
 
-bool wasMovementDetected();
-
-void setMovementDetected();
-
-void resetMovementDetected();
-
-void initISRs(bool alarm_mode);
-
 void initButton();
 
 void initLED();
