@@ -18,14 +18,30 @@ float calculate_water_leakage_vote() {
     return (float) readLeakageSensor();
 }
 
-float calculate_gas_or_fire_vote(int event_flag) {
-    //printf("Odor flag: %u, CO flag: %u\n", param.co_or_odor_event_flag.odor_flag, param.co_or_odor_event_flag.co_flag);
-    float current_temp = readTemperatureSensor();
-    // printf("Current temp is: %f and mean Temp is: %f\n", current_temp, param.co_or_odor_event_flag.mean_temp);
-    return 0.0;
-    //return temp == true ? co_weight*co_flag + temperature_weight : odor_flag*odor_weight+co_flag*co_weight;
+float calculate_gas_vote() {
+    printf("Calculating Gas Vote\n");
+    uint32_t mean = 0;
+    for(int i = 0; i < 50; i++){
+        mean+=readOdorSensor();
+    }
+    mean = mean/50;
+    printf("Current odor mean is: %lu and calculated odor mean: %lu\n", mean, get_odor_mean());
+    if(mean >= get_odor_mean()+200) return 1.0;
+    else return 0.0;
 }
 
+float calculate_fire_vote() {
+    printf("Calculating Fire Vote\n");
+    uint32_t mean = 0;
+    float vote = 0.0;
+    for(int i = 0; i < 100; i++){
+        mean += readCOSensor();
+    }
+    mean = mean/100;
+    if(mean+200 >= get_co_mean() ) vote += co_weight;
+    if(readTemperatureSensor() >= get_temperature_mean() + 3.0) vote+=temperature_weight;
+    return vote;
+}
 
 float calculate_intrusion_vote() {
     initHallSensor();
@@ -37,7 +53,6 @@ float calculate_intrusion_vote() {
             break;
         }
     }
-    printf("Hall Sensor: %i, was movement detected: %u\n ", readHallSensor(), movement);
     float vote = pir_weight*movement + hall_weight * readHallSensor();
     return vote;
 }
@@ -56,10 +71,11 @@ float calculate_vote(int event_flag) {
             return calculate_water_leakage_vote();
         case SHOCK_FLAG:
             return calculate_shock_vote();
-        case FIRE_OR_GAS_FLAG:
-            return calculate_gas_or_fire_vote(event_flag);
         case INTRUSION_FLAG:
             return calculate_intrusion_vote();
+        case FIRE_OR_GAS_FLAG:
+            if(readTemperatureSensor() >= get_temperature_mean() + 3.0) return calculate_fire_vote();
+            else return calculate_gas_vote();
         default:
             return vote;
     }
@@ -85,12 +101,12 @@ float get_own_node_weight(int event_flag) {
     switch (event_flag) {
         case WATER_LEAKAGE_FLAG:
             return node_weight_water_leakage;
-        case FIRE_OR_GAS_FLAG:
-            return node_weight_gas_leakage;
         case SHOCK_FLAG:
             return node_weight_shock;
         case INTRUSION_FLAG:
             return node_weight_shock;
+        case FIRE_OR_GAS_FLAG:
+            return node_weight_gas_or_fire;
         default:
             return 0.0;
     }
@@ -144,7 +160,6 @@ bool calculate_decision(int event_flag, float *final_vote, float *required_major
     for (int i = 0; i < MAX_NUM_SENSORS; i++) {
         if (node_weights[i] != 1.0) node_weights[i] = (node_weights[i] / MAX_NUM_SENSORS) * cnt;
         sum_votes += votes[i] * node_weights[i];
-        //printf("Vote of node %i  with weight %f is:  %f.\n", i, node_weights[i], votes[i]);
     }
 
     *final_vote = sum_votes;
@@ -160,15 +175,15 @@ bool calculate_decision(int event_flag, float *final_vote, float *required_major
             *required_majority = majority;
             if (sum_votes >= majority && sum_votes > 0.0) return true;
             else return false;
-        case FIRE_OR_GAS_FLAG:
-            majority = cnt / 2.0;
-            *required_majority = majority;
-            if (sum_votes >= majority && sum_votes > 0.0) return true;
-            else return false;
         case INTRUSION_FLAG:
             majority = 1.0;
             *required_majority = majority;
             if (sum_votes >= majority && sum_votes > 0.0) return true;
+            else return false;
+        case FIRE_OR_GAS_FLAG:
+            majority = cnt/2.0;
+            *required_majority = majority;
+            if(sum_votes >= majority && sum_votes > 0) return true;
             else return false;
         default:
             return false;

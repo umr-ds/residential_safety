@@ -5,6 +5,10 @@
 adc_oneshot_unit_handle_t adc1_handle;
 static volatile bool button_pressed = false;
 
+RTC_DATA_ATTR uint32_t mean_odor = 0;
+RTC_DATA_ATTR uint32_t mean_co = 0;
+RTC_DATA_ATTR uint32_t mean_temp = 0;
+
 void IRAM_ATTR isr_handler(void *arg) {
     gpio_num_t pin = (gpio_num_t) arg;
     switch (pin) {
@@ -161,7 +165,7 @@ void lis3dh_init(uint8_t threshold) {
                                1000 / portTICK_PERIOD_MS);
 
     writeBuf[0] = LIS3DH_REG_INT1_THS;
-    writeBuf[1] = 0x10;
+    writeBuf[1] = threshold; // 16mg for 2g scale
     i2c_master_write_to_device(I2C_NUM_0, LIS3DH_ADDR, (const uint8_t *) writeBuf, sizeof(writeBuf),
                                1000 / portTICK_PERIOD_MS);
 
@@ -262,25 +266,32 @@ uint32_t readOdorSensor() {
     return raw;
 }
 
-uint32_t calculate_odor_mean(int numValues) {
+void calculate_odor_mean(int numValues) {
     uint32_t sensorValues[numValues];
     uint32_t mean = 0;
     for (int i = 0; i < numValues; i++) {
         sensorValues[i] = readOdorSensor();
         mean += sensorValues[i];
     }
-
-    return (uint32_t) (mean / numValues);
+    mean_odor = (uint32_t) (mean/numValues);
 }
 
-uint32_t calculate_co_mean(int numValues) {
+void calculate_co_mean(int numValues) {
     uint32_t sensorValues[numValues];
     uint32_t mean = 0;
     for (int i = 0; i < numValues; i++) {
         sensorValues[i] = readCOSensor();
         mean += sensorValues[i];
     }
-    return (uint32_t) (mean / numValues);
+    mean_co = (uint32_t) (mean/numValues);
+}
+
+uint32_t get_co_mean(){
+    return mean_co;
+}
+
+uint32_t get_odor_mean(){
+    return mean_odor;
 }
 
 void calibrateAccelerometer(int numValues, Acceleration *mean, Acceleration *stdDev) {
@@ -307,12 +318,19 @@ void calibrateAccelerometer(int numValues, Acceleration *mean, Acceleration *std
     stdDev->z = sqrt(stdDev->z / numValues);
 }
 
-void calibrateTemperatureSensor(int numValues, float *mean) {
+void calculate_temperature_mean(int numValues) {
     float values[numValues];
+    float mean = 0.0;
     for (int i = 0; i < numValues; i++) {
         float temp = readTemperatureSensor();
         values[i] = temp;
-        *mean += temp;
+        mean += temp;
     }
-    *mean /= numValues;
+    mean_temp = mean / numValues;
+}
+
+;
+
+float get_temperature_mean(){
+    return mean_temp;
 }

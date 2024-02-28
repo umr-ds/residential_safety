@@ -6,8 +6,8 @@
 
 #define WATER_LEAKAGE_FLAG 1
 #define INTRUSION_FLAG 2
-#define FIRE_OR_GAS_FLAG 3
-#define SHOCK_FLAG 4
+#define SHOCK_FLAG 3
+#define FIRE_OR_GAS_FLAG 4
 
 #define NUM_SAMPLE_VALUES 500
 

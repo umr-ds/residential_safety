@@ -55,6 +55,7 @@ typedef struct Acceleration {
     float z;
 } Acceleration;
 
+
 void resetButtonPressed();
 
 bool wasButtonPressed();
@@ -97,13 +98,18 @@ uint32_t readCOSensor();
 
 uint32_t readOdorSensor();
 
-uint32_t calculate_odor_mean(int numValues);
+void calculate_odor_mean(int numValues);
 
-uint32_t calculate_co_mean(int numValues);
+void calculate_co_mean(int numValues);
+
+uint32_t get_co_mean();
+
+uint32_t get_odor_mean();
 
 //void calibrateAccelerometer(int numValues, Acceleration *mean, Acceleration *stdDev);
 
-void calibrateTemperatureSensor(int numValues, float *mean);
+void calculate_temperature_mean(int numValues);
 
+float get_temperature_mean();
 
 #endif //MASTERTHESIS_SENSOR_READER_H

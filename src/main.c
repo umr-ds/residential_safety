@@ -45,8 +45,9 @@ static void init_ulp_program(void) {
     ulp_wakeup_flag_co = 0;
     ulp_wakeup_flag_odor = 0;
     ulp_wakeup_flag_button = 0;
-    ulp_high_thr_co = mean_co - 200 >= 3895 ? 4095 : mean_co + 200;
-    ulp_high_thr_odor = mean_odor - 200 >= 3895 ? 4095 : mean_odor + 200;
+    ulp_high_thr_co = get_co_mean() - 200 >= 3895 ? 4095 : get_co_mean()  + 200;
+    ulp_high_thr_odor = get_odor_mean() - 200 >= 3895 ? 4095 : get_odor_mean() + 200;
+    printf("Ulp odor threshold: %lu\n", ulp_high_thr_odor);
     esp_deep_sleep_disable_rom_logging();
 }
 
@@ -130,9 +131,9 @@ void app_main() {
     initTemperatureSensor();
 
     if (calibration_reset_counter == 10) {
-        calibrateTemperatureSensor(10, &meanTemp);
-        mean_odor = calculate_odor_mean(NUM_CALIBRATION_VALUES);
-        mean_co = calculate_co_mean(NUM_CALIBRATION_VALUES);
+        calculate_temperature_mean(10);
+        //calculate_co_mean(NUM_CALIBRATION_VALUES);
+        //calculate_odor_mean(NUM_CALIBRATION_VALUES);
         calibration_reset_counter = 0;
     }
     if (calibrated == false) {
@@ -143,11 +144,11 @@ void app_main() {
             readCOSensor();
             vTaskDelay(100 / portTICK_PERIOD_MS);
         }
-        mean_odor = calculate_odor_mean(NUM_CALIBRATION_VALUES);
-        mean_co = calculate_co_mean(NUM_CALIBRATION_VALUES);
-        printf("Mean Odor: %lu, Mean CO: %lu\n", mean_odor, mean_co);
-        calibrateTemperatureSensor(10, &meanTemp);
-        lis3dh_init(0x10);
+        calculate_co_mean(NUM_CALIBRATION_VALUES);
+        calculate_odor_mean(NUM_CALIBRATION_VALUES);
+        printf("Odor mean: %lu, CO mean: %lu\n", get_odor_mean(), get_co_mean());
+        calculate_temperature_mean(10);
+        lis3dh_init(0x3F);
         calibrated = true;
     }
 
@@ -157,7 +158,9 @@ void app_main() {
     esp_sleep_wakeup_cause_t cause = esp_sleep_get_wakeup_cause();
     switch (cause) {
         case ESP_SLEEP_WAKEUP_TIMER:
-            printf("Wakeup by timer\n");
+            ulp_last_result_odor &= UINT16_MAX;
+            ulp_last_result_co &= UINT16_MAX;
+            printf("Wakeup by timer, last odor value: %lu, last co value: %lu\n", ulp_last_result_odor, ulp_last_result_co);
             break;
         case ESP_SLEEP_WAKEUP_EXT1:
             if ((esp_sleep_get_ext1_wakeup_status() >> ACCELEROMETER_INTR_PIN) & 0x01) {
@@ -168,7 +171,6 @@ void app_main() {
                 }
             } else if ((esp_sleep_get_ext1_wakeup_status() >> PIR_SENSOR_PIN) & 0x01) {
                     printf("Wakeup from PIR Sensor");
-                    //setMovementDetected();
                 if (taskHandle == NULL) {
                     voting_started = true;
                     xTaskCreate(&voting_task, "voting_task", 4096, (void *) INTRUSION_FLAG, 5, &taskHandle);
@@ -192,9 +194,6 @@ void app_main() {
                 set_led_level(1);
                 printf("Button wakeup, alarm mode is:%u\n", alarm_mode);
             } else if (ulp_wakeup_flag_odor == 1 || ulp_wakeup_flag_co == 1) {
-                ulp_last_result_odor &= UINT16_MAX;
-                ulp_last_result_co &= UINT16_MAX;
-                printf("Last result CO: %lu, Odor: %lu\n", ulp_last_result_co, ulp_high_thr_odor);
                 if (taskHandle == NULL) {
                     voting_started = true;
                     xTaskCreate(&voting_task, "voting_task", 2048, (void *) FIRE_OR_GAS_FLAG, 5, &taskHandle);
@@ -266,7 +265,6 @@ void espnow_recv_cb(const esp_now_recv_info_t *recv_info, const uint8_t *data, i
             while (get_sensor_voted(get_node_id(get_own_mac())) == false) {
                 vTaskDelay(10 / portTICK_PERIOD_MS);
             }
-            //printf("Should send vote %f\n", get_vote(get_node_id(get_own_mac())));
             Message voting_msg = {
                     .message_type = VOTING_ANSWER_MESSAGE_TYPE,
                     .event_flag = received_message.event_flag,
@@ -274,7 +272,6 @@ void espnow_recv_cb(const esp_now_recv_info_t *recv_info, const uint8_t *data, i
                     .data.voting_answer_msg.vote_weight = get_own_node_weight(
                             received_message.event_flag),
             };
-            //printf("Sending vote: %f\n", voting_msg.data.voting_answer_msg.vote);
             send_message_to_node(voting_msg, get_node_id(recv_info->src_addr));
             break;
         case VOTING_ANSWER_MESSAGE_TYPE:
