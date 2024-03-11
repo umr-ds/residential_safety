@@ -14,4 +14,9 @@ RTC_DATA_ATTR float odor_weight = 0.5;
 RTC_DATA_ATTR float accel_weight = 1.0;
 RTC_DATA_ATTR float temperature_weight = 0.5;
 
+RTC_DATA_ATTR float node_weight_water_leakage = 1.0;
+RTC_DATA_ATTR float node_weight_gas_or_fire = 1.0;
+RTC_DATA_ATTR float node_weight_intrusion = 1.0;
+RTC_DATA_ATTR float node_weight_shock = 1.0;
+
 #endif //MASTERTHESIS_WEIGHTS_H

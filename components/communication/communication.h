@@ -19,6 +19,7 @@ typedef struct Message {
     union {
         struct {
             float vote;
+            float vote_weight;
         } voting_answer_msg;
         struct {
             bool decision;
