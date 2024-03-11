@@ -4,7 +4,6 @@
 
 float votes[MAX_NUM_SENSORS];
 bool voted_sensors[MAX_NUM_SENSORS];
-float node_weights[MAX_NUM_SENSORS];
 
 void init_votes() {
     for (int i = 0; i < MAX_NUM_SENSORS; i++) {
@@ -97,29 +96,6 @@ float get_vote(int index) {
     return votes[index];
 }
 
-float get_own_node_weight(int event_flag) {
-    switch (event_flag) {
-        case WATER_LEAKAGE_FLAG:
-            return node_weight_water_leakage;
-        case SHOCK_FLAG:
-            return node_weight_shock;
-        case INTRUSION_FLAG:
-            return node_weight_shock;
-        case FIRE_OR_GAS_FLAG:
-            return node_weight_gas_or_fire;
-        default:
-            return 0.0;
-    }
-}
-
-void set_node_weight(int index, float value) {
-    node_weights[index] = value;
-}
-
-float get_node_weight(int index) {
-    return node_weights[index];
-}
-
 bool check_all_nodes_voted() {
     for (int i = 0; i < MAX_NUM_SENSORS; i++) {
         if (voted_sensors[i] == false) return false;
@@ -158,8 +134,7 @@ bool calculate_decision(int event_flag, float *final_vote, float *required_major
         }
     }
     for (int i = 0; i < MAX_NUM_SENSORS; i++) {
-        if (node_weights[i] != 1.0) node_weights[i] = (node_weights[i] / MAX_NUM_SENSORS) * cnt;
-        sum_votes += votes[i] * node_weights[i];
+        sum_votes += votes[i];
     }
 
     *final_vote = sum_votes;

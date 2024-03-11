@@ -67,7 +67,6 @@ void voting_task(void *pvParameter) {
     //if(param.event_flag == INTRUSION_FLAG)
     set_vote(get_node_id(get_own_mac()), calculate_vote(event_flag));
     set_sensor_voted(get_node_id(get_own_mac()));
-    set_node_weight(get_node_id(get_own_mac()), get_own_node_weight(event_flag));
     uint64_t start_time = esp_timer_get_time();
 
 
@@ -269,13 +268,10 @@ void espnow_recv_cb(const esp_now_recv_info_t *recv_info, const uint8_t *data, i
                     .message_type = VOTING_ANSWER_MESSAGE_TYPE,
                     .event_flag = received_message.event_flag,
                     .data.voting_answer_msg.vote = get_vote(get_node_id(get_own_mac())),
-                    .data.voting_answer_msg.vote_weight = get_own_node_weight(
-                            received_message.event_flag),
             };
             send_message_to_node(voting_msg, get_node_id(recv_info->src_addr));
             break;
         case VOTING_ANSWER_MESSAGE_TYPE:
-            set_node_weight(get_node_id(recv_info->src_addr), received_message.data.voting_answer_msg.vote_weight);
             set_vote(get_node_id(recv_info->src_addr), received_message.data.voting_answer_msg.vote);
             set_sensor_voted(get_node_id(recv_info->src_addr));
             break;

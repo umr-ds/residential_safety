@@ -13,25 +13,12 @@
 
 extern const uint8_t mac_addresses[5][6];
 
-/*typedef struct event {
-    uint8_t event_flag;
-    struct {
-        bool odor_flag;
-        bool co_flag;
-        float mean_temp;
-    } co_or_odor_event_flag;
-    struct {
-        bool movement_detected;
-    } pir_sensor;
-} event;*/
-
 typedef struct Message {
     int message_type;
     int event_flag;
     union {
         struct {
             float vote;
-            float vote_weight;
         } voting_answer_msg;
         struct {
             bool decision;

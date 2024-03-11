@@ -19,12 +19,6 @@ void set_vote(int index, float value);
 
 float get_vote(int index);
 
-float get_own_node_weight(int event_flag);
-
-float get_node_weight(int index);
-
-void set_node_weight(int index, float value);
-
 float calculate_vote(int event_flag);
 
 void set_sensor_voted(int index);
