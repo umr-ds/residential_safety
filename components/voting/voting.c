@@ -157,21 +157,35 @@ bool calculate_decision(int event_flag, float *final_vote, float *required_major
             }
         }
     }
-    for (int i = 0; i < MAX_NUM_SENSORS; i++) {
-        if (node_weights[i] != 1.0) node_weights[i] = (node_weights[i] / MAX_NUM_SENSORS) * cnt;
-        sum_votes += votes[i] * node_weights[i];
+    int adjusted_sum_votes = 0;
+    int node_weights_copy[MAX_NUM_SENSORS] = {0};
+
+    for(int i = 0; i < MAX_NUM_SENSORS; i++){
+        adjusted_sum_votes+=node_weights[i];
     }
+
+    for(int i = 0; i < MAX_NUM_SENSORS; i++){
+        node_weights_copy[i] = node_weights[i]* (5/adjusted_sum_votes);
+        sum_votes += votes[i]*node_weights_copy[i];
+    }
+
+    //for (int i = 0; i < MAX_NUM_SENSORS; i++) {
+    //    //if (node_weights[i] != 1.0) node_weights[i] = (node_weights[i] / MAX_NUM_SENSORS) * cnt;
+    //    sum_votes += votes[i] * node_weights[i];
+    //}
 
     *final_vote = sum_votes;
     float majority;
     switch (event_flag) {
         case WATER_LEAKAGE_FLAG:
-            majority = cnt / 2.0;
+            //majority = adjusted_sum_votes / 2.0;
+            majority = MAX_NUM_SENSORS / 2.0;
             *required_majority = majority; //majority;
             if (sum_votes >= majority && sum_votes > 0.0) return true;
             else return false;
         case SHOCK_FLAG:
-            majority = cnt;
+            //majority = cnt;
+            majority = MAX_NUM_SENSORS;
             *required_majority = majority;
             if (sum_votes >= majority && sum_votes > 0.0) return true;
             else return false;
@@ -181,7 +195,8 @@ bool calculate_decision(int event_flag, float *final_vote, float *required_major
             if (sum_votes >= majority && sum_votes > 0.0) return true;
             else return false;
         case FIRE_OR_GAS_FLAG:
-            majority = cnt/2.0;
+            //majority = adjusted_sum_votes/2.0;
+            majority = MAX_NUM_SENSORS / 2.0;
             *required_majority = majority;
             if(sum_votes >= majority && sum_votes > 0) return true;
             else return false;
