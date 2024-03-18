@@ -91,12 +91,12 @@ void voting_task(void *pvParameter) {
     msg.data.voting_result_msg.vote = vote;
     msg.data.voting_result_msg.necessary_majority = neccessary_majority;
     if (decision) {
-        printf("Nodes are accepting event :%i with Vote: %f and neccessary majority was: %f\n",
+        printf("Nodes are accepting event :%i with Vote: %f and necessary majority was: %f\n",
                msg.event_flag,
                msg.data.voting_result_msg.vote,
                msg.data.voting_result_msg.necessary_majority);
     } else {
-        printf("Nodes are declining event :%i with Vote: %f and neccessary majority was: %f\n",
+        printf("Nodes are declining event :%i with Vote: %f and necessary majority was: %f\n",
                msg.event_flag,
                msg.data.voting_result_msg.vote,
                msg.data.voting_result_msg.necessary_majority);
