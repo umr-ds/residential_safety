@@ -48,7 +48,7 @@ static void init_ulp_program(void) {
     ulp_wakeup_flag_co = 0;
     ulp_wakeup_flag_odor = 0;
     ulp_wakeup_flag_button = 0;
-    ulp_high_thr_co = get_co_mean() - 200 >= 3895 ? 4095 : get_co_mean()  + 200;
+    ulp_high_thr_co = get_co_mean() - 200 >= 3895 ? 4095 : get_co_mean() + 200;
     ulp_high_thr_odor = get_odor_mean() - 200 >= 3895 ? 4095 : get_odor_mean() + 200;
     esp_deep_sleep_disable_rom_logging();
 }
@@ -114,25 +114,24 @@ void voting_task(void *pvParameter) {
 
 // Task responsible to observe the user button
 // toggles the alarm mode
-void button_task(){
-    while(1){
+void button_task() {
+    while (1) {
         if (was_button_pressed()) {
             printf("button was pressed\n");
             alarm_mode = !alarm_mode;
-            vTaskDelay(1000/portTICK_PERIOD_MS);
+            vTaskDelay(1000 / portTICK_PERIOD_MS);
             reset_button_pressed();
         }
-        vTaskDelay(10/portTICK_PERIOD_MS);
+        vTaskDelay(10 / portTICK_PERIOD_MS);
     }
 }
-
 
 
 void app_main() {
     init_led();
     init_button();
     xTaskCreatePinnedToCore(&button_task, "buttonTask", 2048, NULL, 5, NULL, 1);
-    if(alarm_mode) set_led_level(1);
+    if (alarm_mode) set_led_level(1);
     init_adc_channels();
     init_i2c_driver();
     init_temperature_sensor();
@@ -174,7 +173,7 @@ void app_main() {
                     xTaskCreate(&voting_task, "voting_task", 2048, (void *) SHOCK_FLAG, 5, &taskHandle);
                 }
             } else if ((esp_sleep_get_ext1_wakeup_status() >> PIR_SENSOR_PIN) & 0x01) {
-                    printf("Wakeup from PIR Sensor");
+                printf("Wakeup from PIR Sensor");
                 if (taskHandle == NULL) {
                     voting_started = true;
                     xTaskCreate(&voting_task, "voting_task", 4096, (void *) INTRUSION_FLAG, 5, &taskHandle);
@@ -240,7 +239,8 @@ void app_main() {
         ESP_ERROR_CHECK(rtc_gpio_pullup_dis(PIR_SENSOR_PIN));
         ESP_ERROR_CHECK(rtc_gpio_pulldown_en(PIR_SENSOR_PIN));
         esp_sleep_enable_ext1_wakeup(
-                ((1ULL << LEAKAGE_SENSOR_PIN) | (1ULL << ACCELEROMETER_INTR_PIN) | (1ULL << PIR_SENSOR_PIN) ), ESP_EXT1_WAKEUP_ANY_HIGH);
+                ((1ULL << LEAKAGE_SENSOR_PIN) | (1ULL << ACCELEROMETER_INTR_PIN) | (1ULL << PIR_SENSOR_PIN)),
+                ESP_EXT1_WAKEUP_ANY_HIGH);
     } else {
         esp_sleep_enable_ext1_wakeup(((1ULL << LEAKAGE_SENSOR_PIN) | (1ULL << ACCELEROMETER_INTR_PIN)),
                                      ESP_EXT1_WAKEUP_ANY_HIGH);

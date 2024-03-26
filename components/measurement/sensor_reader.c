@@ -23,12 +23,12 @@ void IRAM_ATTR isr_handler(void *arg) {
 }
 
 // Resets the 'button_pressed' flag to false
-void reset_button_pressed(){
+void reset_button_pressed() {
     button_pressed = false;
 }
 
 // Returns if th user button was pressed
-bool was_button_pressed(){
+bool was_button_pressed() {
     return button_pressed;
 }
 
@@ -298,7 +298,7 @@ void calculate_odor_mean(int numValues) {
         sensorValues[i] = read_odor_sensor();
         mean += sensorValues[i];
     }
-    mean_odor = (uint32_t) (mean/numValues);
+    mean_odor = (uint32_t) (mean / numValues);
 }
 
 // Calculates a mean value of the co sensor for calibration with 'numValues' measurements
@@ -309,16 +309,16 @@ void calculate_co_mean(int numValues) {
         sensorValues[i] = read_co_sensor();
         mean += sensorValues[i];
     }
-    mean_co = (uint32_t) (mean/numValues);
+    mean_co = (uint32_t) (mean / numValues);
 }
 
 // Returns the calculated co mean value
-uint32_t get_co_mean(){
+uint32_t get_co_mean() {
     return mean_co;
 }
 
 // Returns the calculated odor mean value
-uint32_t get_odor_mean(){
+uint32_t get_odor_mean() {
     return mean_odor;
 }
 
@@ -335,6 +335,6 @@ void calculate_temperature_mean(int numValues) {
 }
 
 // Returns the calculated temperature mean value
-float get_temperature_mean(){
+float get_temperature_mean() {
     return mean_temp;
 }

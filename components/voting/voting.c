@@ -1,6 +1,7 @@
 #include "voting.h"
 #include "weights.h"
 #include "communication.h"
+
 // Contains the vote of each sensor
 float votes[MAX_NUM_SENSORS];
 // Indicates if a specific sensor has voted
@@ -14,6 +15,7 @@ void init_votes() {
         voted_nodes[i] = false;
     }
 }
+
 // Returns the vote for the water leakage scenario
 // Initialize sensor and return if it detects water (1.0) or not (0.0)
 float calculate_water_leakage_vote() {
@@ -26,11 +28,11 @@ float calculate_water_leakage_vote() {
 // Returns 1.0 if mean is above threshold, 0.0 otherwise
 float calculate_gas_vote() {
     uint32_t mean = 0;
-    for(int i = 0; i < 50; i++){
-        mean+=read_odor_sensor();
+    for (int i = 0; i < 50; i++) {
+        mean += read_odor_sensor();
     }
-    mean = mean/50;
-    if(mean >= get_odor_mean()+200) return 1.0;
+    mean = mean / 50;
+    if (mean >= get_odor_mean() + 200) return 1.0;
     else return 0.0;
 }
 
@@ -41,12 +43,12 @@ float calculate_gas_vote() {
 float calculate_fire_vote() {
     uint32_t mean = 0;
     float vote = 0.0;
-    for(int i = 0; i < 50; i++){
+    for (int i = 0; i < 50; i++) {
         mean += read_co_sensor();
     }
-    mean = mean/50;
-    if(mean+200 >= get_co_mean() ) vote += co_weight;
-    if(read_temperature_sensor() >= get_temperature_mean() + 3.0) vote+=temperature_weight;
+    mean = mean / 50;
+    if (mean + 200 >= get_co_mean()) vote += co_weight;
+    if (read_temperature_sensor() >= get_temperature_mean() + 3.0) vote += temperature_weight;
     return vote;
 }
 
@@ -58,13 +60,13 @@ float calculate_intrusion_vote() {
     init_hall_sensor();
     init_pir_sensor();
     int movement = 0;
-    for(int i = 0; i < 500; i++){
-        if(read_pir_sensor()==1){
+    for (int i = 0; i < 500; i++) {
+        if (read_pir_sensor() == 1) {
             movement = 1;
             break;
         }
     }
-    float vote = pir_weight*movement + hall_weight * read_hall_sensor();
+    float vote = pir_weight * movement + hall_weight * read_hall_sensor();
     return vote;
 }
 
@@ -90,7 +92,7 @@ float calculate_vote(int event_flag) {
         case INTRUSION_FLAG:
             return calculate_intrusion_vote();
         case FIRE_OR_GAS_FLAG:
-            if(read_temperature_sensor() >= get_temperature_mean() + 3.0) return calculate_fire_vote();
+            if (read_temperature_sensor() >= get_temperature_mean() + 3.0) return calculate_fire_vote();
             else return calculate_gas_vote();
         default:
             return vote;
@@ -171,12 +173,12 @@ bool calculate_decision(int event_flag, float *final_vote, float *required_major
         for (int i = 0; i < MAX_NUM_SENSORS; i++) {
             if (voted_nodes[i] == true && votes[i] > 0.0) voted_index = i;
         }
-        if(voted_index == -1) {
+        if (voted_index == -1) {
             *required_majority = 1.0;
             *final_vote = 0;
             return 0;
         } else {
-            if(event_flag == INTRUSION_FLAG) {
+            if (event_flag == INTRUSION_FLAG) {
                 *required_majority = 1.0;
                 *final_vote = votes[voted_index];
                 return 0;
@@ -191,15 +193,15 @@ bool calculate_decision(int event_flag, float *final_vote, float *required_major
     int node_weights_copy[MAX_NUM_SENSORS] = {0};
 
     // Sum up the node weights of each node
-    for(int i = 0; i < MAX_NUM_SENSORS; i++){
-        adjusted_sum_votes+=node_weights[i];
+    for (int i = 0; i < MAX_NUM_SENSORS; i++) {
+        adjusted_sum_votes += node_weights[i];
     }
 
     // Rebalance the node weights in case less than 'MAX_NUM_SENSORS' have voted
     // Multiply the vote with the adjusted node weight and add it to 'sum_votes'
-    for(int i = 0; i < MAX_NUM_SENSORS; i++){
-        node_weights_copy[i] = node_weights[i]* (MAX_NUM_SENSORS/adjusted_sum_votes);
-        sum_votes += votes[i]*node_weights_copy[i];
+    for (int i = 0; i < MAX_NUM_SENSORS; i++) {
+        node_weights_copy[i] = node_weights[i] * (MAX_NUM_SENSORS / adjusted_sum_votes);
+        sum_votes += votes[i] * node_weights_copy[i];
     }
 
     *final_vote = sum_votes;
@@ -223,7 +225,7 @@ bool calculate_decision(int event_flag, float *final_vote, float *required_major
         case FIRE_OR_GAS_FLAG:
             majority = MAX_NUM_SENSORS / 2.0;
             *required_majority = majority;
-            if(sum_votes >= majority && sum_votes > 0) return true;
+            if (sum_votes >= majority && sum_votes > 0) return true;
             else return false;
         default:
             return false;

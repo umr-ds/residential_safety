@@ -37,6 +37,7 @@ int find_mac_address(const uint8_t mac_to_find[6]) {
     }
     return -1;
 }
+
 // Returns pointer to own MAC Address array
 uint8_t *get_own_mac() {
     return own_mac;
@@ -89,6 +90,7 @@ void init_esp_now(esp_now_recv_cb_t recvCallback) {
     }
 
 }
+
 // Send message to the address at index 'dest_node_id'.
 // Skips sending if own id is passed
 void send_message_to_node(Message message, uint8_t dest_node_id) {
