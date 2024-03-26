@@ -22,11 +22,15 @@ RTC_DATA_ATTR static bool calibrated = false;
 RTC_DATA_ATTR TaskHandle_t taskHandle = NULL;
 RTC_DATA_ATTR static uint8_t calibration_reset_counter = 0;
 
+
+// Init upl program:
+// Init ADCs for ulp mode, reset ULP wakeup flags and set high thresholds
 static void init_ulp_program(void) {
 
     esp_err_t err = ulp_load_binary(0, ulp_main_bin_start, (ulp_main_bin_end - ulp_main_bin_start) / sizeof(uint32_t));
     ESP_ERROR_CHECK(err);
     adc_oneshot_del_unit(adc1_handle);
+
     adc_oneshot_unit_init_cfg_t init_config1 = {
             .unit_id = ADC_UNIT_1,
             .ulp_mode = ADC_ULP_MODE_FSM,
@@ -39,7 +43,6 @@ static void init_ulp_program(void) {
     };
 
     ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1_handle, CO_SENSOR_ADC_CHANNEL, &config));
-    config.atten = ADC_ATTEN_DB_6;
     ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1_handle, ODOR_SENSOR_ADC_CHANNEL, &config));
 
     ulp_wakeup_flag_co = 0;
@@ -47,7 +50,6 @@ static void init_ulp_program(void) {
     ulp_wakeup_flag_button = 0;
     ulp_high_thr_co = get_co_mean() - 200 >= 3895 ? 4095 : get_co_mean()  + 200;
     ulp_high_thr_odor = get_odor_mean() - 200 >= 3895 ? 4095 : get_odor_mean() + 200;
-    printf("Ulp odor threshold: %lu\n", ulp_high_thr_odor);
     esp_deep_sleep_disable_rom_logging();
 }
 
@@ -56,7 +58,11 @@ static void start_ulp_program(void) {
     ESP_ERROR_CHECK(err);
 }
 
-
+// Task responsible to manage the voting algorithm
+// First it calculates its own vote and sets the associated arrays
+// Then it periodically sends voting requests to other nodes. This while loop either terminates if the VOTING_TIMEOUT_INTERVAL exceeds
+// or if all nodes of the system have voted
+// Afterwards the decision is calculated
 void voting_task(void *pvParameter) {
     int event_flag = (int) pvParameter;
     init_votes();
@@ -64,9 +70,8 @@ void voting_task(void *pvParameter) {
             .message_type = VOTING_REQUEST_MESSAGE_TYPE,
             .event_flag = event_flag,
     };
-    //if(param.event_flag == INTRUSION_FLAG)
     set_vote(get_node_id(get_own_mac()), calculate_vote(event_flag));
-    set_sensor_voted(get_node_id(get_own_mac()));
+    set_node_voted(get_node_id(get_own_mac()));
     set_node_weight(get_node_id(get_own_mac()), get_own_node_weight(event_flag));
     uint64_t start_time = esp_timer_get_time();
 
@@ -77,7 +82,7 @@ void voting_task(void *pvParameter) {
             // Skip if we are the current node
             if (get_node_id(get_own_mac()) == i) continue;
             // Skip if node has already voted
-            if (get_sensor_voted(i) == true) continue;
+            if (get_node_voted(i) == true) continue;
             send_message_to_node(msg, i);
             vTaskDelay(10 / portTICK_PERIOD_MS);
         }
@@ -107,13 +112,15 @@ void voting_task(void *pvParameter) {
     vTaskDelete(taskHandle);
 }
 
+// Task responsible to observe the user button
+// toggles the alarm mode
 void button_task(){
     while(1){
-        if(wasButtonPressed()){
+        if (was_button_pressed()) {
             printf("button was pressed\n");
             alarm_mode = !alarm_mode;
             vTaskDelay(1000/portTICK_PERIOD_MS);
-            resetButtonPressed();
+            reset_button_pressed();
         }
         vTaskDelay(10/portTICK_PERIOD_MS);
     }
@@ -122,45 +129,42 @@ void button_task(){
 
 
 void app_main() {
-    initLED();
-    initButton();
+    init_led();
+    init_button();
     xTaskCreatePinnedToCore(&button_task, "buttonTask", 2048, NULL, 5, NULL, 1);
     if(alarm_mode) set_led_level(1);
-    initADCs();
-    initI2CDriver();
-    initTemperatureSensor();
+    init_adc_channels();
+    init_i2c_driver();
+    init_temperature_sensor();
 
+    // We need to recalibrate the temperature sensor from time to time to address ordinary temperature changes
     if (calibration_reset_counter == 10) {
         calculate_temperature_mean(10);
-        //calculate_co_mean(NUM_CALIBRATION_VALUES);
-        //calculate_odor_mean(NUM_CALIBRATION_VALUES);
         calibration_reset_counter = 0;
     }
+    // Preheat the sensors and calculate a mean value. Configure the Acelerometer in interrupt mode
+    // This is only done once at the entire lifespan since 'calibrated' is saved during deep sleep
     if (calibrated == false) {
         printf("Calibrating to preheat gas sensors. This may take 2 minutes, and is only done once the node was ejected from power\n");
         uint64_t start_time = esp_timer_get_time();
         while ((esp_timer_get_time() - start_time) <= 10 * MICROSEC_TO_SEC) {
-            readOdorSensor();
-            readCOSensor();
+            read_co_sensor();
+            read_odor_sensor();
             vTaskDelay(100 / portTICK_PERIOD_MS);
         }
         calculate_co_mean(NUM_CALIBRATION_VALUES);
         calculate_odor_mean(NUM_CALIBRATION_VALUES);
-        printf("Odor mean: %lu, CO mean: %lu\n", get_odor_mean(), get_co_mean());
         calculate_temperature_mean(10);
         lis3dh_init(0x3F);
         calibrated = true;
     }
 
-    initWifi();
-    initESPNOW(espnow_recv_cb);
-
+    init_wifi();
+    init_esp_now(espnow_recv_cb);
+    // Get the wakeup cause
     esp_sleep_wakeup_cause_t cause = esp_sleep_get_wakeup_cause();
     switch (cause) {
         case ESP_SLEEP_WAKEUP_TIMER:
-            ulp_last_result_odor &= UINT16_MAX;
-            ulp_last_result_co &= UINT16_MAX;
-            printf("Wakeup by timer, last odor value: %lu, last co value: %lu\n", ulp_last_result_odor, ulp_last_result_co);
             break;
         case ESP_SLEEP_WAKEUP_EXT1:
             if ((esp_sleep_get_ext1_wakeup_status() >> ACCELEROMETER_INTR_PIN) & 0x01) {
@@ -192,7 +196,6 @@ void app_main() {
             if (ulp_wakeup_flag_button == 1) {
                 alarm_mode = !alarm_mode;
                 set_led_level(1);
-                printf("Button wakeup, alarm mode is:%u\n", alarm_mode);
             } else if (ulp_wakeup_flag_odor == 1 || ulp_wakeup_flag_co == 1) {
                 if (taskHandle == NULL) {
                     voting_started = true;
@@ -258,11 +261,10 @@ void espnow_recv_cb(const esp_now_recv_info_t *recv_info, const uint8_t *data, i
                 int event_flag = received_message.event_flag;
                 // do not create another task, if one is already running
                 voting_started = true;
-                printf("Task not present yet, creating it with event flag: %i\n", event_flag);
                 xTaskCreate(&voting_task, "voting_task", 4096, (void *) event_flag,
                             5, &taskHandle);
             }
-            while (get_sensor_voted(get_node_id(get_own_mac())) == false) {
+            while (get_node_voted(get_node_id(get_own_mac())) == false) {
                 vTaskDelay(10 / portTICK_PERIOD_MS);
             }
             Message voting_msg = {
@@ -277,12 +279,12 @@ void espnow_recv_cb(const esp_now_recv_info_t *recv_info, const uint8_t *data, i
         case VOTING_ANSWER_MESSAGE_TYPE:
             set_node_weight(get_node_id(recv_info->src_addr), received_message.data.voting_answer_msg.vote_weight);
             set_vote(get_node_id(recv_info->src_addr), received_message.data.voting_answer_msg.vote);
-            set_sensor_voted(get_node_id(recv_info->src_addr));
+            set_node_voted(get_node_id(recv_info->src_addr));
             break;
         case VOTING_RESULT_MESSAGE_TYPE:
             printf(received_message.data.voting_result_msg.decision == true ?
-                   "Nodes are accepting event :%i with Vote: %f and neccessary majority was: %f\n"
-                                                                            : "Nodes are not declining event :%i with Vote: %f and neccessary majority was: %f\n",
+                   "Nodes are accepting event :%i with Vote: %f and necessary majority was: %f\n"
+                                                                            : "Nodes are not declining event :%i with Vote: %f and necessary majority was: %f\n",
                    received_message.event_flag,
                    received_message.data.voting_result_msg.vote,
                    received_message.data.voting_result_msg.necessary_majority);
