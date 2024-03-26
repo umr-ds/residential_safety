@@ -13,9 +13,11 @@
 
 extern const uint8_t mac_addresses[5][6];
 
+// Custom Message structure
+//
 typedef struct Message {
-    int message_type;
-    int event_flag;
+    int message_type; // Used to cast the data
+    int event_flag; // Used to indicate the event
     union {
         struct {
             float vote;
@@ -31,9 +33,9 @@ typedef struct Message {
 
 void espnow_recv_cb(const esp_now_recv_info_t *recv_info, const uint8_t *data, int len);
 
-void initWifi();
+void init_wifi();
 
-void initESPNOW(esp_now_recv_cb_t recvCallback);
+void init_esp_now(esp_now_recv_cb_t recvCallback);
 
 uint8_t *get_own_mac();
 
@@ -42,6 +44,5 @@ const uint8_t *get_mac_address(uint8_t node_id);
 uint8_t get_node_id(uint8_t *mac_address);
 
 void send_message_to_node(Message message, uint8_t dest_node_id);
-
 
 #endif //MASTERTHESIS_ESP_NOW_MANAGER_H

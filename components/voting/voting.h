@@ -27,9 +27,9 @@ void set_node_weight(int index, float value);
 
 float calculate_vote(int event_flag);
 
-void set_sensor_voted(int index);
+void set_node_voted(int index);
 
-bool get_sensor_voted(int index);
+bool get_node_voted(int index);
 
 bool check_all_nodes_voted();
 

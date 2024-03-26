@@ -56,47 +56,47 @@ typedef struct Acceleration {
 } Acceleration;
 
 
-void resetButtonPressed();
+void reset_button_pressed();
 
-bool wasButtonPressed();
+bool was_button_pressed();
 
-void initButton();
+void init_button();
 
-void initLED();
+void init_led();
 
 void set_led_level(uint8_t level);
 
 int get_led_level();
 
-void initADCs();
+void init_adc_channels();
 
-void initI2CDriver();
+void init_i2c_driver();
 
-void initTemperatureSensor();
+void init_temperature_sensor();
 
-float readTemperatureSensor();
+float read_temperature_sensor();
 
 uint8_t lis3dh_read_register(uint8_t reg);
 
 void lis3dh_init(uint8_t threshold);
 
-Acceleration readAccelerometer();
+Acceleration read_accelerometer();
 
-void initLeakageSensor();
+void init_leakage_sensor();
 
-int readLeakageSensor();
+int read_leakage_sensor();
 
-void initPIRSensor();
+void init_pir_sensor();
 
-int readPIRSensor();
+int read_pir_sensor();
 
-void initHallSensor();
+void init_hall_sensor();
 
-int readHallSensor();
+int read_hall_sensor();
 
-uint32_t readCOSensor();
+uint32_t read_co_sensor();
 
-uint32_t readOdorSensor();
+uint32_t read_odor_sensor();
 
 void calculate_odor_mean(int numValues);
 
@@ -105,8 +105,6 @@ void calculate_co_mean(int numValues);
 uint32_t get_co_mean();
 
 uint32_t get_odor_mean();
-
-//void calibrateAccelerometer(int numValues, Acceleration *mean, Acceleration *stdDev);
 
 void calculate_temperature_mean(int numValues);
 

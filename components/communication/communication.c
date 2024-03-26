@@ -6,6 +6,7 @@
 #include "string.h"
 #include "esp_mac.h"
 
+
 const uint8_t mac_addresses[5][6] = {
         {0xE8, 0x9F, 0x6D, 0x33, 0x07, 0x7C},
         {0xE8, 0x9F, 0x6D, 0x32, 0x51, 0x68},
@@ -16,38 +17,43 @@ const uint8_t mac_addresses[5][6] = {
 
 uint8_t own_mac[6];
 
+// Returns 0 if MAC addresses are different, 1 otherwise
 int mac_addresses_equal(const uint8_t *mac1, const uint8_t *mac2) {
     // Compare each byte of the MAC addresses
     for (int i = 0; i < 6; i++) {
         if (mac1[i] != mac2[i]) {
-            return 0; // MAC addresses are different
+            return 0;
         }
     }
-    return 1; // MAC addresses are the same
+    return 1;
 }
 
+// Returns index of MAC address if found, -1 otherwise
 int find_mac_address(const uint8_t mac_to_find[6]) {
     for (int i = 0; i < 5; i++) {
         if (memcmp(mac_addresses[i], mac_to_find, 6) == 0) {
-            return i; // MAC address found at index i
+            return i;
         }
     }
-    return -1; // MAC address not found
+    return -1;
 }
-
+// Returns pointer to own MAC Address array
 uint8_t *get_own_mac() {
     return own_mac;
 }
 
+// Returns pointer to MAC Address array at index node_id
 const uint8_t *get_mac_address(uint8_t node_id) {
     return mac_addresses[node_id];
 }
 
+// Returns index of the passed MAC Address at the mac_addresses array
 uint8_t get_node_id(uint8_t *mac_address) {
     return find_mac_address(mac_address);
 }
 
-void initWifi() {
+// Init WiFi, set mode to station
+void init_wifi() {
     esp_err_t ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
         ESP_ERROR_CHECK(nvs_flash_erase());
@@ -64,10 +70,13 @@ void initWifi() {
 
 }
 
-void initESPNOW(esp_now_recv_cb_t recvCallback) {
+// Init ESP-NOW protocol stack, register passed method as receive callback
+void init_esp_now(esp_now_recv_cb_t recvCallback) {
     ESP_ERROR_CHECK(esp_now_init());
     ESP_ERROR_CHECK(esp_now_register_recv_cb(recvCallback));
+    // Get own mac address and store it
     esp_read_mac(own_mac, ESP_MAC_WIFI_STA);
+    // Get each entry of mac_addresses array and add it to the peer list
     for (int i = 0; i < sizeof(mac_addresses) / sizeof(mac_addresses[0]); i++) {
         if (mac_addresses_equal(own_mac, mac_addresses[i]) != 1) {
             esp_now_peer_info_t peerInfo;
@@ -80,7 +89,8 @@ void initESPNOW(esp_now_recv_cb_t recvCallback) {
     }
 
 }
-
+// Send message to the address at index 'dest_node_id'.
+// Skips sending if own id is passed
 void send_message_to_node(Message message, uint8_t dest_node_id) {
     if (dest_node_id == get_node_id(own_mac)) return;
     else {
